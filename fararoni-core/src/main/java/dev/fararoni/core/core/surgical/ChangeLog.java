@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) 2026 Eber Cruz Fararoni. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package dev.fararoni.core.core.surgical;
+
+/**
+ * @author Eber Cruz
+ * @version 1.0.0
+ * @since 1.0.0
+ */
+public record ChangeLog(
+    String blockId,
+    int originalLine,
+    int newLine,
+    int deltaSize
+) {
+    public ChangeLog {
+        if (blockId == null || blockId.isBlank()) {
+            throw new IllegalArgumentException("blockId no puede ser null o vacio");
+        }
+        if (originalLine < 1) {
+            throw new IllegalArgumentException("originalLine debe ser >= 1");
+        }
+        if (newLine < 1) {
+            throw new IllegalArgumentException("newLine debe ser >= 1");
+        }
+    }
+
+    public int lineDrift() {
+        return newLine - originalLine;
+    }
+
+    public boolean isGrowth() {
+        return deltaSize > 0;
+    }
+
+    public boolean isShrink() {
+        return deltaSize < 0;
+    }
+
+    public boolean isSameSize() {
+        return deltaSize == 0;
+    }
+}

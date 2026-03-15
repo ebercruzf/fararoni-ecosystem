@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- =============================================
+         FARARONI DISTRIBUTION - Bundle Empaquetado
+         FASE 1008 - Genera el ZIP distribuible
+         ============================================= -->
+
+    <parent>
+        <groupId>dev.fararoni</groupId>
+        <artifactId>fararoni-parent</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>fararoni-distribution</artifactId>
+    <packaging>pom</packaging>
+
+    <name>Fararoni Distribution</name>
+    <description>Genera el bundle distribuible fararoni-v1.0.0.zip con binario nativo, sidecars y installer</description>
+
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <!-- Dependencias: solo para que Maven las resuelva antes del assembly -->
+    <dependencies>
+        <dependency>
+            <groupId>dev.fararoni</groupId>
+            <artifactId>fararoni-core</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>dev.fararoni</groupId>
+            <artifactId>fararoni-gateway-rest</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>dev.fararoni</groupId>
+            <artifactId>fararoni-enterprise-transport</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+        </dependency>
+        <!-- FASE 10010 - Audio Core: pendiente
+        <dependency>
+            <groupId>dev.fararoni</groupId>
+            <artifactId>fararoni-audio-core</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+        </dependency>
+        -->
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.7.1</version>
+                <executions>
+                    <execution>
+                        <id>create-distribution</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/assembly/bundle.xml</descriptor>
+                            </descriptors>
+                            <finalName>fararoni-v${project.version}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- =============================================
+         PROFILES: Generacion de DMG solo en macOS
+         Se activa automaticamente en Darwin.
+         Uso manual: mvn install -pl fararoni-distribution -Pdmg
+         ============================================= -->
+    <profiles>
+        <profile>
+            <id>dmg</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <skip.dmg.creation>false</skip.dmg.creation>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>create-macos-dmg</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>zsh</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}/create-dmg.sh</argument>
+                                    </arguments>
+                                    <skip>${skip.dmg.creation}</skip>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

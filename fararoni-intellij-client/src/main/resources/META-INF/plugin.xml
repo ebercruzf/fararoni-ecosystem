@@ -1,0 +1,234 @@
+<idea-plugin>
+    <id>dev.fararoni.intellij</id>
+    <name>Fararoni Sentinel AI</name>
+    <version>1.0.0</version>
+    <vendor email="" url="https://fararoni.dev">Eber Cruz</vendor>
+
+    <description><![CDATA[
+<h1>Fararoni Sentinel AI</h1>
+<h3>Tu Asistente de Inteligencia Artificial para Desarrollo Java</h3>
+
+<p><b>Desarrollado por:</b> Eber Cruz</p>
+
+<hr/>
+
+<h2>Descripcion</h2>
+<p>Fararoni Sentinel AI conecta tu IDE directamente con el <b>Fararoni Core (HiveMind)</b>,
+un motor de inteligencia artificial que se ejecuta localmente en tu maquina.
+A diferencia de otros asistentes de codigo, Fararoni <b>no envia tu codigo a la nube</b>,
+manteniendo tu propiedad intelectual segura.</p>
+
+<h2>Caracteristicas Principales</h2>
+<ul>
+    <li><b>Panel de Chat Interactivo</b> - Conversa con Fararoni directamente desde el panel lateral</li>
+    <li><b>Autocompletado AI</b> - Sugerencias inteligentes mientras escribes codigo Java</li>
+    <li><b>Reparacion Quirurgica</b> - Selecciona codigo con errores y deja que Fararoni lo arregle</li>
+    <li><b>Contexto Inteligente</b> - Fararoni entiende el archivo, la linea y la clase donde trabajas</li>
+    <li><b>Acceso Rapido</b> - Usa <code>Ctrl+Shift+F</code> para preguntar sobre codigo seleccionado</li>
+    <li><b>100% Local</b> - Tu codigo nunca sale de tu maquina</li>
+</ul>
+
+<h2>Como Usar</h2>
+<ol>
+    <li>Inicia el servidor Fararoni: <code>fararoni --server</code></li>
+    <li>Abre el panel lateral "Fararoni" en IntelliJ (lado derecho)</li>
+    <li>Escribe tu pregunta o selecciona codigo y presiona <code>Ctrl+Shift+F</code></li>
+</ol>
+
+<h2>Atajos de Teclado</h2>
+<table>
+    <tr><td><b>Ctrl+Alt+F</b></td><td>Preguntar a Fararoni sobre codigo seleccionado</td></tr>
+    <tr><td><b>Ctrl+Shift+G</b></td><td>Abrir/Cerrar panel de Fararoni</td></tr>
+    <tr><td><b>Alt+Enter</b></td><td>Reparar bloque de codigo con Fararoni</td></tr>
+</table>
+
+<h2>Requisitos</h2>
+<ul>
+    <li>Servidor Fararoni + Gateway ejecutandose (puertos 7070 y 7071)</li>
+    <li>IntelliJ IDEA 2023.3 o superior</li>
+    <li>Java 17+</li>
+</ul>
+
+<h2>Soporte</h2>
+<p>Para reportar bugs o solicitar nuevas funcionalidades:</p>
+<ul>
+    <li>Web: <a href="https://fararoni.dev">https://fararoni.dev</a></li>
+</ul>
+
+<hr/>
+<p><i>Fararoni - Inteligencia Tactica para Desarrolladores</i></p>
+    ]]></description>
+
+    <change-notes><![CDATA[
+<h2>Version 1.0.0 (Febrero 2026) - Enterprise Architecture</h2>
+<h3>Arquitectura Sidecar Gateway</h3>
+<ul>
+    <li><b>FararoniBridge</b> - Comunicacion asincrona Fire-and-Forget via Gateway :7071</li>
+    <li><b>FararoniCallbackServer</b> - Recepcion proactiva de respuestas (puerto 9999)</li>
+    <li><b>SafeStreamingRenderer</b> - Efecto typing letra por letra en respuestas</li>
+    <li><b>FararoniExternalAnnotator</b> - Warnings amarillos para sugerencias de mejora</li>
+    <li><b>ApplyFararoniFixAction</b> - Alt+Enter para aplicar fixes generados por LLM</li>
+    <li><b>FararoniSurgicalPatcher</b> - Aplicacion atomica de cambios con Undo</li>
+    <li><b>FararoniErrorSensor</b> - Deteccion proactiva de errores de compilacion</li>
+    <li><b>ProjectAwarenessManager</b> - Contexto global de archivos abiertos</li>
+    <li><b>FararoniSuggestionCache</b> - Cache TTL para sugerencias pendientes</li>
+</ul>
+
+<h3>Mejoras</h3>
+<ul>
+    <li>Arquitectura Sidecar: Plugin conecta al Gateway, no al Core directamente</li>
+    <li>Comunicacion bidireccional sin WebSockets</li>
+    <li>Virtual Threads (JEP 444) para alta concurrencia</li>
+    <li>Respuestas con efecto de escritura natural</li>
+    <li>Sugerencias proactivas mientras escribes codigo</li>
+</ul>
+
+<h3>Notas Tecnicas</h3>
+<ul>
+    <li>Conexion HTTP asincrona a Gateway localhost:7071</li>
+    <li>CallbackServer en puerto 9999</li>
+    <li>Compatible con IntelliJ 2023.3 - 2025.3</li>
+    <li>Soporte para Java y Kotlin</li>
+</ul>
+
+<h2>Version 1.0.0 (Febrero 2026)</h2>
+<h3>Lanzamiento Inicial</h3>
+<ul>
+    <li><b>Panel de Chat</b> - Panel lateral para conversacion interactiva</li>
+    <li><b>Autocompletado Inteligente</b> - Sugerencias basadas en contexto local</li>
+    <li><b>Ctrl+Shift+F</b> - Consultas rapidas sobre codigo seleccionado</li>
+</ul>
+    ]]></change-notes>
+
+    <idea-version since-build="233" until-build="253.*"/>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <!-- Git4Idea para acceso a rama actual (opcional) -->
+    <depends optional="true" config-file="fararoni-git.xml">Git4Idea</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- ================================================================
+             Enterprise Architecture Extensions
+             ================================================================ -->
+
+        <!-- FararoniSettingsState: Configuracion persistente (Application-level) -->
+        <applicationService serviceImplementation="dev.fararoni.features.FararoniSettingsState"/>
+
+        <!-- FararoniConfigurable: Panel de configuracion en Settings -->
+        <applicationConfigurable
+            parentId="tools"
+            instance="dev.fararoni.features.FararoniConfigurable"
+            id="dev.fararoni.settings"
+            displayName="Fararoni Sentinel"/>
+
+        <!-- FararoniSentinelService: Servicio central con Heartbeat -->
+        <projectService serviceImplementation="dev.fararoni.features.FararoniSentinelService"/>
+
+        <!-- CallbackServer: Recibe mensajes proactivos del Core -->
+        <projectService serviceImplementation="dev.fararoni.features.FararoniCallbackServer"/>
+
+        <!-- ProjectAwarenessManager: Contexto global de archivos abiertos -->
+        <projectService serviceImplementation="dev.fararoni.features.ProjectAwarenessManager"/>
+
+        <!-- SuggestionCache: Cache de sugerencias para ExternalAnnotator -->
+        <projectService serviceImplementation="dev.fararoni.features.FararoniSuggestionCache"/>
+
+        <!-- FararoniProjectSession: Trace ID aislado por proyecto -->
+        <projectService serviceImplementation="dev.fararoni.features.FararoniProjectSession"/>
+
+        <!-- FararoniBridge: Cliente asíncrono hacia Gateway -->
+        <projectService serviceImplementation="dev.fararoni.features.FararoniBridge"/>
+
+        <!-- ErrorSensor: Detección proactiva de errores de compilación -->
+        <projectService serviceImplementation="dev.fararoni.features.FararoniErrorSensor"/>
+
+        <!-- ExternalAnnotator: Dibuja warnings para sugerencias de Fararoni -->
+        <externalAnnotator language="JAVA"
+            implementationClass="dev.fararoni.features.FararoniExternalAnnotator"/>
+        <externalAnnotator language="kotlin"
+            implementationClass="dev.fararoni.features.FararoniExternalAnnotator"/>
+
+        <!-- Tool Window: Panel lateral de chat -->
+        <toolWindow id="Fararoni"
+                    anchor="right"
+                    secondary="false"
+                    icon="/icons/fararoni.svg"
+                    factoryClass="dev.fararoni.ui.FararoniToolWindowFactory"/>
+
+        <!-- Autocompletado con Fararoni AI -->
+        <completion.contributor
+            language="JAVA"
+            implementationClass="dev.fararoni.features.FararoniCompletionContributor"/>
+
+        <!--
+             NOTA: FixWithFararoniAction fue reemplazado por ApplyFararoniFixAction
+             que se registra dinámicamente via FararoniExternalAnnotator.withFix()
+             El archivo .java.legacy se puede eliminar en limpieza final.
+        -->
+
+        <!-- Notification Group para mensajes proactivos -->
+        <notificationGroup id="Fararoni Notifications"
+                           displayType="BALLOON"
+                           toolWindowId="Fararoni"/>
+
+        <!-- ================================================================
+             Stacktrace Analyzer
+             ================================================================ -->
+
+        <!-- ConsoleFilterProvider: Detecta errores en consola y ofrece fixes -->
+        <consoleFilterProvider
+            implementation="dev.fararoni.features.FararoniConsoleFilterProvider"/>
+    </extensions>
+
+    <actions>
+        <!-- Grupo principal en menu Tools -->
+        <group id="FararoniMenu" text="Fararoni AI" description="Fararoni AI Actions" popup="true">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+
+            <!-- Accion: Preguntar a Fararoni -->
+            <action id="Fararoni.AskAction"
+                    class="dev.fararoni.features.AskFararoniAction"
+                    text="Preguntar a Fararoni"
+                    description="Enviar codigo seleccionado a Fararoni AI"
+                    icon="/icons/fararoni.svg">
+                <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt F"/>
+                <keyboard-shortcut keymap="Mac OS X" first-keystroke="meta alt F"/>
+                <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta alt F"/>
+            </action>
+
+            <separator/>
+
+            <!-- Accion: Abrir Tool Window -->
+            <action id="Fararoni.OpenToolWindow"
+                    class="dev.fararoni.features.OpenFararoniToolWindowAction"
+                    text="Abrir Panel Fararoni"
+                    description="Abrir el panel lateral de Fararoni"
+                    icon="/icons/fararoni.svg">
+                <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift G"/>
+                <keyboard-shortcut keymap="Mac OS X" first-keystroke="meta shift G"/>
+                <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta shift G"/>
+            </action>
+        </group>
+
+        <!-- Accion en el menu contextual del editor -->
+        <group id="FararoniEditorMenu">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <separator/>
+            <reference ref="Fararoni.AskAction"/>
+        </group>
+
+        <!-- ================================================================
+             Commit Message Generator
+             ================================================================ -->
+
+        <!-- Accion: Generar mensaje de commit con Fararoni -->
+        <action id="Fararoni.GenerateCommitMessage"
+                class="dev.fararoni.features.FararoniCommitMessageAction"
+                text="Generar Mensaje con Fararoni"
+                description="Genera un mensaje de commit inteligente basado en los cambios"
+                icon="/icons/fararoni.svg">
+            <add-to-group group-id="Vcs.MessageActionGroup" anchor="first"/>
+        </action>
+    </actions>
+</idea-plugin>

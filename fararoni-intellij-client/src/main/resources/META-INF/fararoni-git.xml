@@ -1,0 +1,8 @@
+<!--
+  Configuración opcional para integración con Git4Idea
+  Permite acceso a rama actual de Git
+-->
+<idea-plugin>
+    <!-- Este archivo se carga solo si Git4Idea está disponible -->
+    <!-- No se requieren extensiones adicionales, solo la dependencia -->
+</idea-plugin>

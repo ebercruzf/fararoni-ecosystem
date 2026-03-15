@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Instalar Fararoni Suite
+Comment=Lanzar el wizard de instalacion interactivo de Fararoni v1.0.0
+Exec=bash -c "cd $(dirname %k) && chmod +x installer.sh && ./installer.sh; read"
+Icon=utilities-terminal
+Terminal=true
+Categories=Development;

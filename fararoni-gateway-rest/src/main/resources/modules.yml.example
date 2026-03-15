@@ -1,0 +1,137 @@
+# =============================================================================
+# FARARONI GATEWAY REST - Configuration Example
+# =============================================================================
+#
+# Copy this file to: ~/.fararoni/config/modules.yml
+#
+# FASE 71 - OmniChannel Gateway Module
+# Puerto: 7071 (default)
+# Endpoint: POST /gateway/v1/inbound
+#
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# GATEWAY CONFIGURATION
+# -----------------------------------------------------------------------------
+gateway:
+  rest:
+    # Enable/disable the gateway module
+    enabled: true
+
+    # Port for the HTTP server
+    # Default: 7071 (avoids conflict with CLI server on 7070)
+    port: 7071
+
+    # Security settings
+    security:
+      # API token for authentication
+      # Use "env:VARIABLE_NAME" to read from environment variable
+      # Set to empty or omit for development mode (no auth)
+      api_token: "env:FARARONI_GATEWAY_TOKEN"
+
+    # Rate limiting and payload limits
+    limits:
+      # Maximum payload size in MB (for audio/images)
+      max_payload_mb: 20
+
+      # Token Bucket rate limiter
+      # Capacity: maximum burst size
+      rate_limit_capacity: 100
+
+      # Refill rate: tokens per second
+      rate_limit_refill: 10
+
+# -----------------------------------------------------------------------------
+# CHANNEL CONFIGURATIONS
+# -----------------------------------------------------------------------------
+# Each channel represents an external Sidecar that communicates with Fararoni
+# via HTTP. Sidecars handle protocol-specific logic (WhatsApp/Baileys, etc.)
+# -----------------------------------------------------------------------------
+channels:
+
+  # ---------------------------------------------------------------------------
+  # WhatsApp via Baileys Sidecar (Node.js)
+  # ---------------------------------------------------------------------------
+  whatsapp:
+    # Enable/disable this channel
+    enabled: true
+
+    # Security trust level
+    # - UNTRUSTED_EXTERNAL: Public internet (WhatsApp, Telegram)
+    # - SECURE_ENCRYPTED: End-to-end encrypted (Matrix, Signal)
+    # - SECURE_INTERNAL: Internal network (IoT, Home Assistant)
+    trust_level: UNTRUSTED_EXTERNAL
+
+    # URL where the Sidecar listens for outbound messages
+    # Fararoni POSTs responses here
+    egress_url: "http://localhost:3000/send"
+
+    # Supported message types
+    # - text: Plain text messages
+    # - audio: Voice messages (requires fararoni-extension-voice)
+    # - image: Images (requires fararoni-extension-vision)
+    # - file: Documents/files
+    capabilities:
+      - text
+      - audio
+      - image
+
+    # HTTP timeout in milliseconds
+    timeout_ms: 5000
+
+    # Number of retries on failure
+    retry_count: 3
+
+    # Optional auth token for Sidecar
+    # auth_token: "env:WHATSAPP_SIDECAR_TOKEN"
+
+  # ---------------------------------------------------------------------------
+  # Telegram (Example - requires Telegram Sidecar)
+  # ---------------------------------------------------------------------------
+  telegram:
+    enabled: false
+    trust_level: SECURE_ENCRYPTED
+    egress_url: "http://localhost:3001/send"
+    capabilities:
+      - text
+      - audio
+    timeout_ms: 5000
+    retry_count: 3
+
+  # ---------------------------------------------------------------------------
+  # Slack (Example - requires Slack Sidecar/Bolt)
+  # ---------------------------------------------------------------------------
+  slack:
+    enabled: false
+    trust_level: UNTRUSTED_EXTERNAL
+    egress_url: "http://localhost:3002/send"
+    capabilities:
+      - text
+    timeout_ms: 10000
+    retry_count: 3
+
+  # ---------------------------------------------------------------------------
+  # Smart Home / IoT (Example - Home Assistant webhook)
+  # ---------------------------------------------------------------------------
+  smart_home:
+    enabled: false
+    trust_level: SECURE_INTERNAL
+    egress_url: "http://homeassistant.local:8123/api/webhook/fararoni"
+    capabilities:
+      - text
+      - action
+    timeout_ms: 3000
+    retry_count: 1
+
+# =============================================================================
+# VOICE EXTENSION CONFIGURATION (Optional)
+# =============================================================================
+extensions:
+  voice:
+    enabled: true
+    # STT provider: whisper-jni (local) or openai (cloud)
+    stt_provider: "whisper-jni"
+    # TTS provider: sherpa-onnx (local) or elevenlabs (cloud)
+    tts_provider: "sherpa-onnx"
+    # Model for Whisper
+    model: "base.en"
