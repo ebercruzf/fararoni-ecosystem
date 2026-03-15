@@ -1,0 +1,31 @@
+{
+  "name": "@fararoni/infrastructure-sidecar-discord",
+  "version": "1.0.0",
+  "description": "Discord Sidecar for Fararoni OmniChannel Gateway",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "DEBUG=true node index.js"
+  },
+  "keywords": [
+    "fararoni",
+    "discord",
+    "sidecar",
+    "bot"
+  ],
+  "author": "Equipo Fararoni",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "axios": "^1.13.5",
+    "discord.js": "^14.25.1",
+    "dotenv": "^16.3.0",
+    "express": "^4.22.1"
+  },
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

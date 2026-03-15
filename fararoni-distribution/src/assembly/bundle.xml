@@ -1,0 +1,130 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.2.0
+          http://maven.apache.org/xsd/assembly-2.2.0.xsd">
+
+    <id>bundle</id>
+
+    <!-- Genera .zip y .tar.gz -->
+    <formats>
+        <format>zip</format>
+        <format>tar.gz</format>
+    </formats>
+
+    <includeBaseDirectory>true</includeBaseDirectory>
+    <baseDirectory>fararoni-v${project.version}</baseDirectory>
+
+    <fileSets>
+
+        <!-- ============================================================
+             bin/ — Binario nativo GraalVM
+             ============================================================ -->
+        <fileSet>
+            <directory>${project.basedir}/../fararoni-core/target</directory>
+            <outputDirectory>bin</outputDirectory>
+            <includes>
+                <include>fararoni-core</include>
+            </includes>
+            <fileMode>0755</fileMode>
+        </fileSet>
+
+        <!-- ============================================================
+             bin/ — Launcher script
+             ============================================================ -->
+        <fileSet>
+            <directory>${project.basedir}/../fararoni-core/src/main/scripts</directory>
+            <outputDirectory>bin</outputDirectory>
+            <includes>
+                <include>fararoni*</include>
+            </includes>
+            <fileMode>0755</fileMode>
+        </fileSet>
+
+        <!-- ============================================================
+             lib/ — JARs Enterprise (gateway, transport) para classpath
+             ============================================================ -->
+        <fileSet>
+            <directory>${project.basedir}/../fararoni-gateway-rest/target</directory>
+            <outputDirectory>lib</outputDirectory>
+            <includes>
+                <include>fararoni-gateway-rest-${project.version}.jar</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>${project.basedir}/../fararoni-enterprise-transport/target</directory>
+            <outputDirectory>lib</outputDirectory>
+            <includes>
+                <include>fararoni-enterprise-transport-${project.version}.jar</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>${project.basedir}/../fararoni-enterprise-transport/target/dependency</directory>
+            <outputDirectory>lib/deps</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+        </fileSet>
+
+        <!-- ============================================================
+             bin/ — Sidecars SEA (binarios nativos, compilados por build-sidecars.sh)
+             ============================================================ -->
+        <fileSet>
+            <directory>${project.basedir}/target/sidecars</directory>
+            <outputDirectory>bin</outputDirectory>
+            <includes>
+                <include>sidecar-*</include>
+            </includes>
+            <fileMode>0755</fileMode>
+        </fileSet>
+
+        <!-- ============================================================
+             Raiz — Installer, ecosystem, config, licencia
+             ============================================================ -->
+        <fileSet>
+            <directory>${project.basedir}/src/main/resources</directory>
+            <outputDirectory></outputDirectory>
+            <includes>
+                <include>installer.sh</include>
+                <include>installer.ps1</include>
+                <include>ecosystem.config.js</include>
+                <include>fararoni-launcher.sh</include>
+                <include>global.env</include>
+                <include>Instalar Fararoni.command</include>
+                <include>Instalar Fararoni.bat</include>
+                <include>instalar-fararoni.desktop</include>
+            </includes>
+            <fileMode>0755</fileMode>
+        </fileSet>
+
+        <!-- Icono de la aplicacion -->
+        <fileSet>
+            <directory>${project.basedir}/src/main/resources</directory>
+            <outputDirectory></outputDirectory>
+            <includes>
+                <include>Fararoni.icns</include>
+            </includes>
+        </fileSet>
+
+        <!-- config/ vacio para que el installer lo use -->
+        <fileSet>
+            <directory>${project.basedir}/src/main/resources/config</directory>
+            <outputDirectory>config</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+
+        <!-- Licencia en la raiz del bundle -->
+        <fileSet>
+            <directory>${project.basedir}/../fararoni-agent-api</directory>
+            <outputDirectory></outputDirectory>
+            <includes>
+                <include>LICENSE</include>
+            </includes>
+        </fileSet>
+
+    </fileSets>
+
+</assembly>

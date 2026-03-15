@@ -1,0 +1,457 @@
+[
+  {
+    "_comment": "=== Core Annotations ===",
+    "name": "dev.fararoni.agent.api.AgentAction",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.ToolParameter",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.Sanitized",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.Sanitized$SanitizationStrategy",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "_comment": "=== Security Annotations ===",
+    "name": "dev.fararoni.agent.api.security.RequiresRole",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.security.AuditLog",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.security.RateLimit",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.security.RateLimit$Strategy",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "_comment": "=== Core Interfaces ===",
+    "name": "dev.fararoni.agent.api.ToolSkill",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.ToolRegistry",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "_comment": "=== Core Records ===",
+    "name": "dev.fararoni.agent.api.ToolRequest",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.ToolResponse",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.FNLResult",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "_comment": "=== Core Exceptions ===",
+    "name": "dev.fararoni.agent.api.ToolException",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.ToolNotFoundException",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.ActionNotFoundException",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.ParameterValidationException",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "_comment": "=== Saga Pattern ===",
+    "name": "dev.fararoni.agent.api.saga.SagaCapableSkill",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.saga.CompensationInstruction",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "_comment": "=== Governance ===",
+    "name": "dev.fararoni.agent.api.governance.QuotaAwareSkill",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "_comment": "=== I/O Streaming ===",
+    "name": "dev.fararoni.agent.api.io.StreamableSkill",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.io.BinaryStreamHandle",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "_comment": "=== Stateful Sessions ===",
+    "name": "dev.fararoni.agent.api.state.StatefulSkill",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.state.SessionHandle",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "_comment": "=== Domain Skills: FileSystem ===",
+    "name": "dev.fararoni.agent.api.skills.FileSystemSkill",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.FileSystemSkill$FileEntry",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.FileSystemSkill$FileInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.FileSystemSkill$SearchMatch",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "_comment": "=== Domain Skills: Terminal ===",
+    "name": "dev.fararoni.agent.api.skills.TerminalSkill",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.TerminalSkill$ExecutionResult",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "_comment": "=== Domain Skills: Git ===",
+    "name": "dev.fararoni.agent.api.skills.GitSkill",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.GitSkill$GitStatus",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.GitSkill$CommitInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.GitSkill$BranchInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.GitSkill$MergeResult",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.GitSkill$ResetMode",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "_comment": "=== Domain Skills: Project Analysis ===",
+    "name": "dev.fararoni.agent.api.skills.ProjectAnalysisSkill",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.ProjectAnalysisSkill$ProjectInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.ProjectAnalysisSkill$ProjectType",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.ProjectAnalysisSkill$Dependency",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.ProjectAnalysisSkill$DirectoryNode",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.ProjectAnalysisSkill$SymbolInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.ProjectAnalysisSkill$SymbolKind",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.ProjectAnalysisSkill$UsageLocation",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.ProjectAnalysisSkill$UsageKind",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.ProjectAnalysisSkill$CallHierarchyItem",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.ProjectAnalysisSkill$CodeMetrics",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "_comment": "=== Domain Skills: Knowledge Source ===",
+    "name": "dev.fararoni.agent.api.skills.KnowledgeSourceSkill",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.KnowledgeSourceSkill$KnowledgeChunk",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.KnowledgeSourceSkill$IndexResult",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.KnowledgeSourceSkill$SourceInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.KnowledgeSourceSkill$IndexStats",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "_comment": "=== Domain Skills: Database ===",
+    "name": "dev.fararoni.agent.api.skills.DatabaseSkill",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.DatabaseSkill$QueryResult",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.DatabaseSkill$ExecuteResult",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.DatabaseSkill$BatchResult",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.DatabaseSkill$Statement",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.DatabaseSkill$TableInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.DatabaseSkill$TableDescription",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.DatabaseSkill$ColumnInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.DatabaseSkill$ForeignKey",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.DatabaseSkill$IndexInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.DatabaseSkill$DatabaseInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "_comment": "=== Domain Skills: Browser ===",
+    "name": "dev.fararoni.agent.api.skills.BrowserSkill",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.BrowserSkill$PageInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.BrowserSkill$ScreenshotInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.BrowserSkill$PdfInfo",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.BrowserSkill$PdfOptions",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.fararoni.agent.api.skills.BrowserSkill$Cookie",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  }
+]

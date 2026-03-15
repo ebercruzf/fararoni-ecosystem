@@ -1,0 +1,43 @@
+# Fararoni MCP Discovery Configuration (FASE 80.1.8)
+#
+# Auto-discovery permite al Kernel detectar servidores MCP
+# sin configuracion manual.
+#
+# Copyright (C) 2026 Eber Cruz Fararoni - Apache 2.0
+
+mcp_bridge:
+  # Activar/desactivar bridge MCP
+  enabled: true
+
+  # Auto-discovery de servidores MCP
+  auto_discover: true
+
+  # Endpoints donde buscar servidores MCP
+  target_nodes:
+    - "http://localhost:3004"
+    - "http://localhost:3005"
+    # Produccion (descomentar segun ambiente)
+    # - "http://mcp-server-production:8080"
+
+  # Timeout para health check (ms)
+  timeout_ms: 500
+
+  # Reintentos antes de marcar offline
+  retry_policy: 3
+
+  # Intervalo de health check (ms)
+  health_check_interval_ms: 5000
+
+# Configuracion de sidecars conocidos
+sidecars:
+  # Sidecar MCP externo (proceso separado)
+  mcp_external:
+    enabled: true
+    bus_topic: "mcp.execute"
+    heartbeat_topic: "system.skills.online"
+    expected_keyword: "MCP"
+
+  # Futuros sidecars pueden agregarse aqui
+  # postgres_direct:
+  #   enabled: false
+  #   bus_topic: "db.execute"

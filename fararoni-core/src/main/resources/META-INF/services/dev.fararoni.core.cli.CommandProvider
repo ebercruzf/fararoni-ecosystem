@@ -1,0 +1,4 @@
+# FARARONI Core Command Providers
+# ServiceLoader auto-discovery for CLI commands
+
+dev.fararoni.core.cli.CoreCommandProvider

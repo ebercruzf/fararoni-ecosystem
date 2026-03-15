@@ -1,0 +1,305 @@
+[
+{
+  "name":"[B"
+},
+{
+  "name":"[Ljava.lang.String;"
+},
+{
+  "name":"dev.fararoni.core.cli.ConfigCommand",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.cli.ConfigCommand$GetCommand",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.cli.ConfigCommand$ListCommand",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.cli.ConfigCommand$SetCommand",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.cli.ConfigCommand$ShowCommand",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.cli.ConfigCommand$UnsetCommand",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.cli.LlmFararoni",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.core.llm.LocalLlmService",
+  "methods":[{"name":"<init>","parameterTypes":["dev.fararoni.core.core.llm.LocalLlmConfig"] }]
+},
+{
+  "name":"com.sun.jna.CallbackProxy",
+  "methods":[{"name":"callback","parameterTypes":["java.lang.Object[]"] }]
+},
+{
+  "name":"dev.fararoni.core.core.utils.NativeSilencer$LibC",
+  "allDeclaredMethods":true,
+  "allPublicMethods":true,
+  "methods":[
+    {"name":"dup","parameterTypes":["int"]},
+    {"name":"dup2","parameterTypes":["int","int"]},
+    {"name":"open","parameterTypes":["java.lang.String","int"]},
+    {"name":"close","parameterTypes":["int"]}
+  ]
+},
+{
+  "name":"java.lang.Object",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"equals","parameterTypes":["java.lang.Object"] }, {"name":"hashCode","parameterTypes":[] }, {"name":"toString","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.String"
+},
+{
+  "name":"java.lang.System",
+  "methods":[{"name":"console","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.Thread",
+  "fields":[{"name":"threadLocalRandomProbe"}]
+},
+{
+  "name":"java.lang.Throwable",
+  "methods":[{"name":"addSuppressed","parameterTypes":["java.lang.Throwable"] }]
+},
+{
+  "name":"java.nio.Buffer"
+},
+{
+  "name":"java.nio.file.Path"
+},
+{
+  "name":"java.nio.file.Paths",
+  "methods":[{"name":"get","parameterTypes":["java.lang.String","java.lang.String[]"] }]
+},
+{
+  "name":"java.sql.Connection"
+},
+{
+  "name":"java.sql.Driver"
+},
+{
+  "name":"java.sql.DriverManager",
+  "methods":[{"name":"getConnection","parameterTypes":["java.lang.String"] }, {"name":"getDriver","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.util.concurrent.atomic.AtomicBoolean",
+  "fields":[{"name":"value"}]
+},
+{
+  "name":"java.util.concurrent.atomic.AtomicReference",
+  "fields":[{"name":"value"}]
+},
+{
+  "name":"picocli.CommandLine$AutoHelpMixin",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.skills.GitSkill",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.skills.SystemSkill",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.skills.DateTimeSkill",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.skills.SkillProvider",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.integration.FnlIntegrationService",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.integration.FnlToolRequestParser",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.dispatcher.AgentDispatcher",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.dispatcher.ToolRegistryImpl",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.dispatcher.ReflectionToolInvoker",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.dispatcher.ActionMetadata",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.dispatcher.ParameterMetadata",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.router.LlmRouterService",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.jline.terminal.impl.jna.JnaNativePty",
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.jline.terminal.impl.jansi.JansiTerminalProvider",
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.jline.terminal.TerminalBuilder",
+  "allDeclaredConstructors":true,
+  "allDeclaredMethods":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.jline.reader.impl.LineReaderImpl",
+  "allDeclaredConstructors":true,
+  "allDeclaredMethods":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.jline.reader.impl.history.DefaultHistory",
+  "allDeclaredConstructors":true,
+  "allDeclaredMethods":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.jline.terminal.impl.DumbTerminal",
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.jline.terminal.impl.ExternalTerminal",
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true
+},
+{
+  "name":"dev.fararoni.cli.JLineConfig",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allPublicMethods":true
+},
+{
+  "name":"dev.fararoni.cli.CommandCompleter",
+  "allDeclaredConstructors":true,
+  "allDeclaredMethods":true,
+  "allPublicMethods":true
+},
+{
+  "name":"dev.fararoni.core.session.SessionContextState",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.session.FileModification",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.session.ErrorContext",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"dev.fararoni.core.session.FileAction",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "_comment": "FIX 9.5: CodeSnippet necesita reflexion para serializacion JSON en native-image",
+  "name":"dev.fararoni.core.session.CodeSnippet",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"java.util.ArrayList",
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true
+}
+]

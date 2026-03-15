@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- =============================================
+         FARARONI GATEWAY REST MODULE
+         FASE 71 - OmniChannel Gateway (Ingress/Egress)
+
+         Modulo independiente JAR para comunicacion HTTP
+         con Sidecars externos (WhatsApp, Telegram, etc.)
+
+         ARQUITECTURA:
+         - RestIngressServer: Recibe HTTP de Sidecars (Puerto 7071)
+         - HttpEgressDispatcher: Envia HTTP a Sidecars
+         - Desacoplado del Core via SovereignEventBus
+
+         PAQUETE BASE: dev.fararoni.bus.gateway.rest
+         ============================================= -->
+
+    <parent>
+        <groupId>dev.fararoni</groupId>
+        <artifactId>fararoni-parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>fararoni-gateway-rest</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>Fararoni Gateway REST</name>
+    <description>
+        OmniChannel HTTP Gateway for Fararoni.
+        Provides Ingress (receive) and Egress (dispatch) capabilities
+        for external Sidecars (WhatsApp, Telegram, Slack, Discord, IoT).
+
+        Key Features:
+        - Zero external dependencies (uses JDK HttpServer)
+        - Virtual Threads (JEP 444) for high concurrency
+        - Token Bucket Rate Limiting
+        - Configurable via modules.yml
+
+        Port: 7071 (default)
+        Endpoint: POST /gateway/v1/inbound
+    </description>
+
+    <properties>
+        <!-- Inherit Java 25 from parent -->
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+    </properties>
+
+    <dependencies>
+        <!-- =============================================
+             CORE DEPENDENCY - Bus API
+             Provides SovereignEventBus and SovereignEnvelope
+             ============================================= -->
+        <dependency>
+            <groupId>dev.fararoni</groupId>
+            <artifactId>fararoni-agent-api</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <!-- =============================================
+             FASE 71.8 - Fararoni Core
+             Provides ChannelRegistry for dynamic channel management
+             ============================================= -->
+        <dependency>
+            <groupId>dev.fararoni</groupId>
+            <artifactId>fararoni-core</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <!-- =============================================
+             JSON PROCESSING
+             Jackson for UniversalMessage serialization
+             ============================================= -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
+        <!-- =============================================
+             CONFIGURATION
+             YAML for modules.yml parsing
+             ============================================= -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+
+        <!-- =============================================
+             TESTING
+             ============================================= -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Maven Compiler with Preview Features -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>${java.version}</release>
+                    <compilerArgs>
+                        <arg>--enable-preview</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <!-- Surefire for tests with preview features -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+
+            <!-- LICENSE HEADER: Apache 2.0 (hereda del parent POM) -->
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

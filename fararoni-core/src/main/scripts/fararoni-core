@@ -1,0 +1,25 @@
+#!/bin/bash
+# Fararoni CLI Launcher
+# FASE 47: Requiere --enable-preview para StructuredTaskScope (JEP 480)
+
+# Resolver symlinks para encontrar el directorio real
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+    DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+
+JAR_FILE="$SCRIPT_DIR/fararoni-core-1.0.0.jar"
+
+if [ ! -f "$JAR_FILE" ]; then
+    echo " Error: JAR no encontrado en $JAR_FILE"
+    echo "   Ejecuta: mvn clean package -DskipTests"
+    exit 1
+fi
+
+# Ejecutar con preview features habilitadas
+exec java --enable-preview \
+    --enable-native-access=ALL-UNNAMED \
+    -jar "$JAR_FILE" "$@"

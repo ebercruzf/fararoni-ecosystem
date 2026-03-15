@@ -1,0 +1,5 @@
+[
+  {
+    "interfaces": ["dev.fararoni.core.core.utils.NativeSilencer$LibC"]
+  }
+]

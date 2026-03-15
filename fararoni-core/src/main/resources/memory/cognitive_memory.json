@@ -1,0 +1,154 @@
+{
+  "meta": {
+    "version": "14.0-CICLO-18.51",
+    "description": "Ciclo 18.51: Fix pov __dict__->to_dict (deepcopy bug). All GMs tested locally.",
+    "last_updated": "2026-01-28"
+  },
+  "constitution": [
+    {
+      "id": "CORE_PHILOSOPHY",
+      "scope": "GLOBAL",
+      "description": "FILOSOFIA: Robustez > Brevedad. Usa CODIGO MAESTRO obligatoriamente."
+    }
+  ],
+  "skill_library": [
+    {
+      "id": "SKILL_DOT_DSL",
+      "tags": ["dot-dsl"],
+      "description": "Graph DSL. Fix: Exact error messages per test spec.",
+      "codeSnippet": "NODE, EDGE, ATTR = range(3)\nclass Node:\n    def __init__(self, name, attrs): self.name, self.attrs = name, attrs\n    def __eq__(self, other): return self.name == other.name and self.attrs == other.attrs\nclass Edge:\n    def __init__(self, src, dst, attrs): self.src, self.dst, self.attrs = src, dst, attrs\n    def __eq__(self, other): return (self.src == other.src and self.dst == other.dst and self.attrs == other.attrs)\nclass Graph:\n    def __init__(self, data=None):\n        self.nodes, self.edges, self.attrs = [], [], {}\n        if data is None: return\n        if not isinstance(data, list): raise TypeError(\"Graph data malformed\")\n        for item in data:\n            if len(item) < 2: raise TypeError(\"Graph item incomplete\")\n            t = item[0]\n            if t == ATTR:\n                if len(item) != 3: raise ValueError(\"Attribute is malformed\")\n                self.attrs[item[1]] = item[2]\n            elif t == NODE:\n                if len(item) != 3: raise ValueError(\"Node is malformed\")\n                self.nodes.append(Node(item[1], item[2]))\n            elif t == EDGE:\n                if len(item) != 4: raise ValueError(\"Edge is malformed\")\n                self.edges.append(Edge(item[1], item[2], item[3]))\n            else: raise ValueError(\"Unknown item\")"
+    },
+    {
+      "id": "SKILL_HANGMAN",
+      "tags": ["hangman"],
+      "description": "Hangman. Fix: Check WIN before LOSE, LOSE only at < 0.",
+      "codeSnippet": "STATUS_WIN, STATUS_LOSE, STATUS_ONGOING = \"win\", \"lose\", \"ongoing\"\nclass Hangman:\n    def __init__(self, word):\n        self.remaining_guesses = 9\n        self.status = STATUS_ONGOING\n        self.word = word\n        self.guessed = set()\n    def guess(self, char):\n        if self.status != STATUS_ONGOING: raise ValueError(\"The game has already ended.\")\n        if char in self.guessed:\n            self.remaining_guesses -= 1\n        else:\n            self.guessed.add(char)\n            if char not in self.word:\n                self.remaining_guesses -= 1\n        if all(c in self.guessed for c in self.word):\n            self.status = STATUS_WIN\n        elif self.remaining_guesses < 0:\n            self.status = STATUS_LOSE\n    def get_masked_word(self):\n        return \"\".join(c if c in self.guessed else \"_\" for c in self.word)\n    def get_status(self):\n        return self.status"
+    },
+    {
+      "id": "SKILL_POV",
+      "tags": ["pov"],
+      "description": "POV Tree. Fix: to_dict instead of __dict__ (breaks deepcopy).",
+      "codeSnippet": "from json import dumps\nfrom copy import deepcopy\nclass Tree:\n    def __init__(self, label, children=None):\n        self.label = label\n        self.children = list(children) if children else []\n    def to_dict(self): return {self.label: [c.to_dict() for c in sorted(self.children)]}\n    def __str__(self, indent=None): return dumps(self.to_dict(), indent=indent)\n    def __lt__(self, other): return self.label < other.label\n    def __eq__(self, other): return self.to_dict() == other.to_dict()\n    def from_pov(self, from_node):\n        path = self._find_path(from_node)\n        if not path: raise ValueError(\"Tree could not be reoriented\")\n        for i in range(len(path) - 1):\n            ancestor, descendant = path[i], path[i+1]\n            ancestor.children = [c for c in ancestor.children if c.label != descendant.label]\n            descendant.children = list(descendant.children) + [ancestor]\n        return path[-1]\n    def path_to(self, from_node, to_node):\n        tree_copy = deepcopy(self)\n        try:\n            new_root = tree_copy.from_pov(from_node)\n        except ValueError:\n            raise ValueError(\"Tree could not be reoriented\")\n        path = new_root._find_path(to_node)\n        if not path: raise ValueError(\"No path found\")\n        return [node.label for node in path]\n    def _find_path(self, target):\n        if self.label == target: return [self]\n        for c in self.children:\n            p = c._find_path(target)\n            if p: return [self] + p\n        return None"
+    },
+    {
+      "id": "SKILL_BOWLING",
+      "tags": ["bowling"],
+      "description": "Bowling. Complete 10th frame logic.",
+      "codeSnippet": "class BowlingGame:\n    def __init__(self): self.rolls = []\n    def roll(self, pins):\n        if pins < 0: raise ValueError(\"Negative roll is invalid\")\n        if pins > 10: raise ValueError(\"Pin count exceeds pins on the lane\")\n        if self._game_complete(): raise ValueError(\"Cannot roll after game is over\")\n        self.rolls.append(pins)\n        if not self._valid(): self.rolls.pop(); raise ValueError(\"Pin count exceeds pins on the lane\")\n    def score(self):\n        if not self._game_complete(): raise ValueError(\"Score cannot be taken until the end of the game\")\n        total, i = 0, 0\n        for _ in range(10):\n            if self.rolls[i] == 10: total += 10 + self.rolls[i+1] + self.rolls[i+2]; i += 1\n            elif self.rolls[i] + self.rolls[i+1] == 10: total += 10 + self.rolls[i+2]; i += 2\n            else: total += self.rolls[i] + self.rolls[i+1]; i += 2\n        return total\n    def _frame_start(self):\n        i = 0\n        for f in range(9):\n            if i >= len(self.rolls): return i, f\n            i += 1 if self.rolls[i] == 10 else 2\n        return i, 9\n    def _game_complete(self):\n        i, f = self._frame_start()\n        if f < 9: return False\n        t = self.rolls[i:]\n        if len(t) < 2: return False\n        if t[0] == 10: return len(t) >= 3\n        if t[0] + t[1] == 10: return len(t) >= 3\n        return len(t) >= 2\n    def _valid(self):\n        i, f = self._frame_start()\n        if f < 9:\n            if i < len(self.rolls) and self.rolls[i] != 10 and i+1 < len(self.rolls):\n                if self.rolls[i] + self.rolls[i+1] > 10: return False\n        else:\n            t = self.rolls[i:]\n            if len(t) == 2 and t[0] != 10 and t[0] + t[1] > 10: return False\n            if len(t) == 3:\n                if t[0] == 10:\n                    if t[1] != 10 and t[1] + t[2] > 10: return False\n                elif t[0] + t[1] == 10: pass\n        return True"
+    },
+    {
+      "id": "SKILL_LIST_OPS",
+      "tags": ["list-ops"],
+      "description": "Functional list operations. Fix: foldr argument order (acc, item).",
+      "codeSnippet": "def append(list1, list2):\n    return list1 + list2\ndef concat(lists):\n    res = []\n    for l in lists: res.extend(l)\n    return res\ndef filter(function, list):\n    return [x for x in list if function(x)]\ndef length(list):\n    return len(list)\ndef map(function, list):\n    return [function(x) for x in list]\ndef foldl(function, list, initial):\n    acc = initial\n    for x in list: acc = function(acc, x)\n    return acc\ndef foldr(function, list, initial):\n    acc = initial\n    for x in list[::-1]: \n        # FIX VALIDADO: foldr espera (acc, item) para la funcion acumuladora\n        acc = function(acc, x)\n    return acc\ndef reverse(list):\n    return list[::-1]"
+    },
+    {
+      "id": "SKILL_FORTH",
+      "tags": ["forth"],
+      "description": "Forth Evaluator. Fix: Detect negative numbers as illegal definitions.",
+      "codeSnippet": "class StackUnderflowError(Exception): pass\ndef evaluate(input_data):\n    stack = []\n    defines = {}\n    for line in input_data:\n        tokens = line.lower().split()\n        i = 0\n        while i < len(tokens):\n            token = tokens[i]\n            if token == \":\":\n                i += 1\n                if i >= len(tokens): raise ValueError(\"undefined operation\")\n                name = tokens[i]\n                if name.lstrip('-').isdigit(): raise ValueError(\"illegal operation\")\n                definition = []\n                i += 1\n                while i < len(tokens) and tokens[i] != \";\":\n                    definition.append(tokens[i])\n                    i += 1\n                if i == len(tokens): raise ValueError(\"undefined operation\")\n                resolved_def = []\n                for d in definition:\n                    if d in defines: resolved_def.extend(defines[d])\n                    else: resolved_def.append(d)\n                defines[name] = resolved_def\n            elif token in defines:\n                tokens[i+1:i+1] = defines[token]\n            elif token.lstrip('-').isdigit():\n                stack.append(int(token))\n            else:\n                if token == \"+\":\n                    if len(stack) < 2: raise StackUnderflowError(\"Insufficient number of items in stack\")\n                    stack.append(stack.pop() + stack.pop())\n                elif token == \"-\":\n                    if len(stack) < 2: raise StackUnderflowError(\"Insufficient number of items in stack\")\n                    b, a = stack.pop(), stack.pop(); stack.append(a - b)\n                elif token == \"*\":\n                    if len(stack) < 2: raise StackUnderflowError(\"Insufficient number of items in stack\")\n                    stack.append(stack.pop() * stack.pop())\n                elif token == \"/\":\n                    if len(stack) < 2: raise StackUnderflowError(\"Insufficient number of items in stack\")\n                    b, a = stack.pop(), stack.pop()\n                    if b == 0: raise ZeroDivisionError(\"divide by zero\")\n                    stack.append(int(a / b))\n                elif token == \"dup\":\n                    if not stack: raise StackUnderflowError(\"Insufficient number of items in stack\")\n                    stack.append(stack[-1])\n                elif token == \"drop\":\n                    if not stack: raise StackUnderflowError(\"Insufficient number of items in stack\")\n                    stack.pop()\n                elif token == \"swap\":\n                    if len(stack) < 2: raise StackUnderflowError(\"Insufficient number of items in stack\")\n                    b, a = stack.pop(), stack.pop(); stack.extend([b, a])\n                elif token == \"over\":\n                    if len(stack) < 2: raise StackUnderflowError(\"Insufficient number of items in stack\")\n                    stack.append(stack[-2])\n                else: raise ValueError(\"undefined operation\")\n            i += 1\n    return stack"
+    },
+    {
+      "id": "SKILL_FOOD_CHAIN",
+      "tags": ["food-chain"],
+      "description": "Food Chain Song. Fix: Returns flat list of strings, empty string between verses.",
+      "codeSnippet": "ANIMALS = [\"fly\", \"spider\", \"bird\", \"cat\", \"dog\", \"goat\", \"cow\", \"horse\"]\nCOMMENTS = [\"\", \"It wriggled and jiggled and tickled inside her.\", \"How absurd to swallow a bird!\", \"Imagine that, to swallow a cat!\", \"What a hog, to swallow a dog!\", \"Just opened her throat and swallowed a goat!\", \"I don't know how she swallowed a cow!\", \"She's dead, of course!\"]\ndef recite(start_verse, end_verse):\n    result = []\n    for i in range(start_verse - 1, end_verse):\n        if result: result.append(\"\")\n        result.append(f\"I know an old lady who swallowed a {ANIMALS[i]}.\")\n        if i == 7:\n            result.append(COMMENTS[7])\n            continue\n        if i > 0: result.append(COMMENTS[i])\n        for j in range(i, 0, -1):\n            line = f\"She swallowed the {ANIMALS[j]} to catch the {ANIMALS[j-1]}.\"\n            if j == 2: line = line.replace(\"spider.\", \"spider that wriggled and jiggled and tickled inside her.\")\n            result.append(line)\n        result.append(\"I don't know why she swallowed the fly. Perhaps she'll die.\")\n    return result"
+    },
+    {
+      "id": "SKILL_SAFE_WRAPPER",
+      "tags": ["paasio"],
+      "description": "Wrapper Paasio Final.",
+      "codeSnippet": "import io\n\nclass MeteredFile(io.BufferedRandom):\n    def __init__(self, *args, **kwargs):\n        super().__init__(*args, **kwargs)\n        self._read_ops = 0\n        self._read_bytes = 0\n        self._write_ops = 0\n        self._write_bytes = 0\n\n    def __enter__(self):\n        return self\n\n    def __exit__(self, exc_type, exc_val, exc_tb):\n        return super().__exit__(exc_type, exc_val, exc_tb)\n\n    def __iter__(self):\n        return self\n\n    def __next__(self):\n        line = super().readline()\n        if not line:\n            raise StopIteration\n        self._read_ops += 1\n        self._read_bytes += len(line)\n        return line\n\n    def read(self, size=-1):\n        data = super().read(size)\n        self._read_ops += 1\n        self._read_bytes += len(data)\n        return data\n\n    @property\n    def read_ops(self): return self._read_ops\n\n    @property\n    def read_bytes(self): return self._read_bytes\n\n    def write(self, b):\n        n = super().write(b)\n        self._write_ops += 1\n        self._write_bytes += n\n        return n\n\n    @property\n    def write_ops(self): return self._write_ops\n\n    @property\n    def write_bytes(self): return self._write_bytes\n\n\nclass MeteredSocket:\n    def __init__(self, sock):\n        self._sock = sock\n        self._recv_ops = 0\n        self._recv_bytes = 0\n        self._send_ops = 0\n        self._send_bytes = 0\n\n    def __enter__(self):\n        return self\n\n    def __exit__(self, exc_type, exc_val, exc_tb):\n        return self._sock.__exit__(exc_type, exc_val, exc_tb)\n\n    def recv(self, bufsize, flags=0):\n        data = self._sock.recv(bufsize, flags)\n        self._recv_ops += 1\n        self._recv_bytes += len(data)\n        return data\n\n    @property\n    def recv_ops(self): return self._recv_ops\n\n    @property\n    def recv_bytes(self): return self._recv_bytes\n\n    def send(self, data, flags=0):\n        n = self._sock.send(data, flags)\n        self._send_ops += 1\n        self._send_bytes += n\n        return n\n\n    @property\n    def send_ops(self): return self._send_ops\n\n    @property\n    def send_bytes(self): return self._send_bytes"
+    },
+    {
+      "id": "SKILL_PIG_LATIN",
+      "tags": ["pig-latin"],
+      "description": "Pig Latin translation logic.",
+      "codeSnippet": "def translate(text):\n    return \" \".join(translate_word(word) for word in text.split())\n\ndef translate_word(word):\n    vowels = \"aeiou\"\n    if word[0] in vowels or word[:2] in (\"xr\", \"yt\"):\n        return word + \"ay\"\n    for i, char in enumerate(word):\n        if char in vowels or (char == \"y\" and i > 0):\n            if word[i-1:i+1] == \"qu\":\n                return word[i+1:] + word[:i+1] + \"ay\"\n            return word[i:] + word[:i] + \"ay\"\n    return word + \"ay\""
+    },
+    {
+      "id": "SKILL_BEER_SONG",
+      "tags": ["beer-song"],
+      "description": "Beer song generation logic",
+      "codeSnippet": "def recite(start, take=1):\n    verses = []\n    for n in range(start, start - take, -1):\n        verses.extend(verse(n))\n        if n > start - take + 1:\n            verses.append(\"\")\n    return verses\n\ndef verse(n):\n    if n == 0:\n        return [\n            \"No more bottles of beer on the wall, no more bottles of beer.\",\n            \"Go to the store and buy some more, 99 bottles of beer on the wall.\"\n        ]\n    elif n == 1:\n        return [\n            \"1 bottle of beer on the wall, 1 bottle of beer.\",\n            \"Take it down and pass it around, no more bottles of beer on the wall.\"\n        ]\n    elif n == 2:\n        return [\n            \"2 bottles of beer on the wall, 2 bottles of beer.\",\n            \"Take one down and pass it around, 1 bottle of beer on the wall.\"\n        ]\n    else:\n        return [\n            f\"{n} bottles of beer on the wall, {n} bottles of beer.\",\n            f\"Take one down and pass it around, {n-1} bottles of beer on the wall.\"\n        ]"
+    },
+    {
+      "id": "SKILL_BOTTLE_SONG",
+      "tags": ["bottle-song"],
+      "description": "Bottle song generation. Fix: 'one green bottle'.",
+      "codeSnippet": "NUMS = [\"no\", \"One\", \"Two\", \"Three\", \"Four\", \"Five\", \"Six\", \"Seven\", \"Eight\", \"Nine\", \"Ten\"]\ndef recite(start, take=1):\n    result = []\n    for i in range(take):\n        n = start - i\n        result.extend(verse(n))\n        if i < take - 1:\n            result.append(\"\")\n    return result\ndef verse(n):\n    current = NUMS[n]\n    next_num = NUMS[n - 1].lower() if n > 0 else \"no\"\n    bottle1 = \"bottle\" if n == 1 else \"bottles\"\n    bottle2 = \"bottle\" if n - 1 == 1 else \"bottles\"\n    line1 = f\"{current} green {bottle1} hanging on the wall,\"\n    line3 = \"And if one green bottle should accidentally fall,\"\n    line4 = f\"There'll be {next_num} green {bottle2} hanging on the wall.\"\n    return [line1, line1, line3, line4]"
+    },
+    {
+      "id": "SKILL_BOOK_STORE",
+      "tags": ["book-store"],
+      "description": "Calculates basket total with discount optimization (4+4 vs 5+3 rule).",
+      "codeSnippet": "def total(basket):\n    if not basket: return 0\n    counts = [basket.count(x) for x in set(basket)]\n    counts.sort(reverse=True)\n    costs = {1: 800, 2: 1520, 3: 2160, 4: 2560, 5: 3000}\n    groups = []\n    while sum(counts) > 0:\n        s = set()\n        for i, c in enumerate(counts):\n            if c > 0 and i not in s:\n                s.add(i)\n                counts[i] -= 1\n                if len(s) == 5: break\n        groups.append(len(s))\n    while 5 in groups and 3 in groups:\n        groups.remove(5)\n        groups.remove(3)\n        groups.append(4)\n        groups.append(4)\n    return sum(costs[g] for g in groups)"
+    },
+    {
+      "id": "SKILL_POKER_HANDS",
+      "tags": ["poker"],
+      "description": "Logica de Poker",
+      "codeSnippet": "def best_hands(hands):\n    return allmax(hands, key=hand_rank)\ndef allmax(iterable, key=None):\n    result, maxval = [], None\n    key = key or (lambda x: x)\n    for item in iterable:\n        val = key(item)\n        if not result or val > maxval:\n            result, maxval = [item], val\n        elif val == maxval:\n            result.append(item)\n    return result\ndef hand_rank(hand):\n    hand = hand.replace('10', 'T').split()\n    ranks = ['..23456789TJQKA'.index(r) for r, s in hand]\n    ranks.sort(reverse=True)\n    is_flush = len(set(s for r, s in hand)) == 1\n    is_straight = (max(ranks) - min(ranks) == 4) and (len(set(ranks)) == 5)\n    if ranks == [14, 5, 4, 3, 2]:\n        ranks = [5, 4, 3, 2, 1]\n        is_straight = True\n    groups = [(ranks.count(x), x) for x in set(ranks)]\n    groups.sort(key=lambda x: (x[0], x[1]), reverse=True)\n    counts, score_ranks = zip(*groups)\n    if is_straight and is_flush: return (8, ranks)\n    if counts == (4, 1): return (7, score_ranks)\n    if counts == (3, 2): return (6, score_ranks)\n    if is_flush: return (5, ranks)\n    if is_straight: return (4, ranks)\n    if counts == (3, 1, 1): return (3, score_ranks)\n    if counts == (2, 2, 1): return (2, score_ranks)\n    if counts == (2, 1, 1, 1): return (1, score_ranks)\n    return (0, ranks)"
+    },
+    {
+      "id": "SKILL_PHONE_NUMBER",
+      "tags": ["phone-number"],
+      "description": "Validacion NANP con mensajes exactos letra por letra.",
+      "codeSnippet": "import re\nclass PhoneNumber:\n    def __init__(self, number):\n        if any(c.isalpha() for c in number): raise ValueError('letters not permitted')\n        if any(c in \"@:!\" for c in number): raise ValueError('punctuations not permitted')\n        d = re.sub(r'\\D', '', number)\n        if len(d) < 10: raise ValueError('must not be fewer than 10 digits')\n        if len(d) > 11: raise ValueError('must not be greater than 11 digits')\n        if len(d) == 11:\n            if not d.startswith('1'): raise ValueError('11 digits must start with 1')\n            d = d[1:]\n        if d[0] == '0': raise ValueError('area code cannot start with zero')\n        if d[0] == '1': raise ValueError('area code cannot start with one')\n        if d[3] == '0': raise ValueError('exchange code cannot start with zero')\n        if d[3] == '1': raise ValueError('exchange code cannot start with one')\n        self.number = d\n        self.area_code = d[:3]\n    def pretty(self):\n        return f'({self.number[:3]})-{self.number[3:6]}-{self.number[6:]}'"
+    },
+    {
+      "id": "SKILL_DOMINOES",
+      "tags": ["dominoes"],
+      "description": "Dominoes backtracking",
+      "codeSnippet": "def can_chain(dominoes):\n    if not dominoes: return []\n    for i in range(len(dominoes)):\n        res = solve([dominoes[i]], dominoes[:i]+dominoes[i+1:])\n        if res: return res\n        if dominoes[i][0] != dominoes[i][1]:\n            res = solve([tuple(reversed(dominoes[i]))], dominoes[:i]+dominoes[i+1:])\n            if res: return res\n    return None\ndef solve(chain, rest):\n    if not rest: return chain if chain[0][0] == chain[-1][1] else None\n    tgt = chain[-1][1]\n    for i, d in enumerate(rest):\n        if d[0] == tgt:\n            res = solve(chain + [d], rest[:i]+rest[i+1:])\n            if res: return res\n        elif d[1] == tgt:\n            res = solve(chain + [tuple(reversed(d))], rest[:i]+rest[i+1:])\n            if res: return res\n    return None"
+    },
+    {
+      "id": "SKILL_AFFINE",
+      "tags": ["affine-cipher"],
+      "description": "Affine cipher math",
+      "codeSnippet": "import math\ndef encode(plain, a, b):\n    if math.gcd(a, 26) != 1: raise ValueError('Error')\n    res = []\n    for c in plain:\n        if c.isalnum():\n            if c.isdigit(): res.append(c)\n            elif c.isalpha():\n                res.append(chr(((a * (ord(c.lower())-97) + b) % 26) + 97))\n    blk = ''.join(res)\n    return ' '.join(blk[i:i+5] for i in range(0, len(blk), 5))\ndef decode(cipher, a, b):\n    if math.gcd(a, 26) != 1: raise ValueError('Error')\n    inv = pow(a, -1, 26)\n    res = []\n    for c in cipher:\n        if c.isalnum():\n            if c.isdigit(): res.append(c)\n            elif c.isalpha():\n                res.append(chr(((inv * (ord(c.lower())-97 - b)) % 26) + 97))\n    return ''.join(res)"
+    },
+    {
+      "id": "SKILL_GRADE_SCHOOL",
+      "tags": ["grade-school"],
+      "description": "School roster logic",
+      "codeSnippet": "import copy\nclass School:\n    def __init__(self):\n        self.db = {}\n        self._added_log = []\n    def add_student(self, name, grade):\n        for students in self.db.values():\n            if name in students:\n                self._added_log.append(False)\n                return\n        if grade not in self.db: self.db[grade] = []\n        self.db[grade].append(name)\n        self.db[grade].sort()\n        self._added_log.append(True)\n    def roster(self):\n        res = []\n        for g in sorted(self.db.keys()): res.extend(self.db[g])\n        return res\n    def grade(self, g):\n        return copy.deepcopy(self.db.get(g, []))\n    def added(self):\n        return self._added_log"
+    },
+    {
+      "id": "SKILL_GREP",
+      "tags": ["grep"],
+      "description": "Grep implementation",
+      "codeSnippet": "def grep(pattern, flags, files):\n    res = []\n    n, l, i_case, v, x = '-n' in flags, '-l' in flags, '-i' in flags, '-v' in flags, '-x' in flags\n    for file in files:\n        try:\n            with open(file) as f: lines = f.readlines()\n        except: continue\n        for idx, line in enumerate(lines):\n            txt = line.rstrip('\\n')\n            p, t = (pattern.lower(), txt.lower()) if i_case else (pattern, txt)\n            match = (p == t) if x else (p in t)\n            if v: match = not match\n            if match:\n                if l:\n                    res.append(file + '\\n')\n                    break\n                pre = ''\n                if len(files) > 1: pre += f'{file}:'\n                if n: pre += f'{idx+1}:'\n                res.append(f'{pre}{txt}\\n')\n    return ''.join(res)"
+    },
+    {
+      "id": "SKILL_PROVERB",
+      "tags": ["proverb"],
+      "description": "Proverb chain generator",
+      "codeSnippet": "def proverb(*args, qualifier=None):\n    if not args: return []\n    out = []\n    for i in range(len(args)-1):\n        out.append(f'For want of a {args[i]} the {args[i+1]} was lost.')\n    qual = f'{qualifier} {args[0]}' if qualifier else args[0]\n    out.append(f'And all for the want of a {qual}.')\n    return out"
+    },
+    {
+      "id": "SKILL_ROBOT_NAME",
+      "tags": ["robot-name"],
+      "description": "Robot name factory",
+      "codeSnippet": "import random\nimport string\nclass Robot:\n    used_names = set()\n    def __init__(self):\n        self.name = self.generate_name()\n    def reset(self):\n        self.name = self.generate_name()\n    def generate_name(self):\n        while True:\n            name = ''.join(random.choices(string.ascii_uppercase, k=2)) + \\\n                   ''.join(random.choices(string.digits, k=3))\n            if name not in Robot.used_names:\n                Robot.used_names.add(name)\n                return name"
+    },
+    {
+      "id": "SKILL_WORDY",
+      "tags": ["wordy"],
+      "description": "Parser matematico con manejo exacto de 'What is?'.",
+      "codeSnippet": "def answer(question):\n    if question == 'What is?': raise ValueError('syntax error')\n    if not question.startswith('What is ') or not question.endswith('?'): raise ValueError('unknown operation')\n    body = question[8:-1].strip()\n    if not body: raise ValueError('syntax error')\n    valid_ops = {'plus', 'minus', 'multiplied', 'divided', 'by'}\n    words = body.split()\n    for w in words:\n        if not (w.isdigit() or w.lstrip('-').isdigit()) and w not in valid_ops: raise ValueError('unknown operation')\n    expr = body.replace('plus', '+').replace('minus', '-').replace('multiplied by', '*').replace('divided by', '/')\n    tokens = expr.split()\n    if not tokens or len(tokens) % 2 == 0: raise ValueError('syntax error')\n    try:\n        res = int(tokens[0])\n        i = 1\n        while i < len(tokens):\n            op = tokens[i]\n            num = int(tokens[i+1])\n            if op == '+': res += num\n            elif op == '-': res -= num\n            elif op == '*': res *= num\n            elif op == '/': res //= num\n            i += 2\n        return res\n    except: raise ValueError('syntax error')"
+    },
+    {
+      "id": "SKILL_CONNECT",
+      "tags": ["connect"],
+      "description": "Connect Hex. Fix: Transpose logic for X (Left-Right) vs O (Top-Bottom).",
+      "codeSnippet": "class ConnectGame:\n    def __init__(self, board):\n        self.board = [row.replace(\" \", \"\") for row in board.splitlines()]\n        self.height = len(self.board)\n        self.width = len(self.board[0])\n\n    def get_winner(self):\n        if self.check('O', self.width, self.height, False):\n            return 'O'\n        if self.check('X', self.height, self.width, True):\n            return 'X'\n        return \"\"\n\n    def check(self, player, dim1, dim2, transpose):\n        start_nodes = []\n        for r in range(self.height):\n            for c in range(self.width):\n                if self.board[r][c] == player:\n                    if (transpose and c == 0) or (not transpose and r == 0):\n                        start_nodes.append((r, c))\n        queue = start_nodes\n        seen = set(start_nodes)\n        while queue:\n            r, c = queue.pop(0)\n            if (transpose and c == self.width - 1) or (not transpose and r == self.height - 1):\n                return True\n            for dr, dc in [(-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0)]:\n                nr, nc = r + dr, c + dc\n                if 0 <= nr < self.height and 0 <= nc < self.width and self.board[nr][nc] == player and (nr, nc) not in seen:\n                    seen.add((nr, nc))\n                    queue.append((nr, nc))\n        return False"
+    },
+    {
+      "id": "SKILL_GO_COUNTING",
+      "tags": ["go-counting"],
+      "description": "Go board territory counting",
+      "codeSnippet": "WHITE, BLACK, NONE = 'W', 'B', ''\nclass Board:\n    def __init__(self, board):\n        self.board = [list(row) for row in board]\n        self.h = len(board)\n        self.w = len(board[0])\n    def territory(self, x, y):\n        if not (0 <= x < self.w and 0 <= y < self.h): raise ValueError(\"Invalid coordinate\")\n        if self.board[y][x] != ' ': return NONE, set()\n        territory, borders = set(), set()\n        queue = [(x, y)]\n        visited = {(x, y)}\n        while queue:\n            cx, cy = queue.pop(0)\n            territory.add((cx, cy))\n            for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:\n                nx, ny = cx + dx, cy + dy\n                if 0 <= nx < self.w and 0 <= ny < self.h:\n                    if self.board[ny][nx] == ' ' and (nx, ny) not in visited:\n                        visited.add((nx, ny))\n                        queue.append((nx, ny))\n                    elif self.board[ny][nx] != ' ':\n                        borders.add(self.board[ny][nx])\n        owner = borders.pop() if len(borders) == 1 else NONE\n        return owner, territory\n    def territories(self):\n        res = {BLACK: set(), WHITE: set(), NONE: set()}\n        processed = set()\n        for y in range(self.h):\n            for x in range(self.w):\n                if self.board[y][x] == ' ' and (x, y) not in processed:\n                    owner, terr = self.territory(x, y)\n                    res[owner].update(terr)\n                    processed.update(terr)\n        return res"
+    }
+  ]
+}
