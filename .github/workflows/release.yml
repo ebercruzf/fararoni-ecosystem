@@ -125,7 +125,8 @@ jobs:
       # Maven — compila core + gateway + enterprise + distribution
       # ---------------------------------------------------------------
       - name: Maven package
-        run: mvn package -DskipTests -Dmaven.javadoc.skip=true -B
+        shell: bash
+        run: mvn package "-DskipTests" "-Dmaven.javadoc.skip=true" -B
 
       # ---------------------------------------------------------------
       # Renombrar artefactos con plataforma
