@@ -356,7 +356,7 @@ app.get('/status', async (req, res) => {
 async function start() {
     console.log('');
     console.log('='.repeat(60));
-    console.log('  FARARONI SIDECAR - iMESSAGE (FASE 71.7)');
+    console.log('  FARARONI SIDECAR - iMESSAGE');
     console.log('  via BlueBubbles Server');
     console.log('='.repeat(60));
     console.log('');

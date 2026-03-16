@@ -275,7 +275,7 @@ app.get('/status', (req, res) => {
 async function start() {
     console.log('');
     console.log('='.repeat(60));
-    console.log('  FARARONI SIDECAR - TELEGRAM (FASE 71.5)');
+    console.log('  FARARONI SIDECAR - TELEGRAM');
     console.log('='.repeat(60));
     console.log('');
 

@@ -1,6 +1,6 @@
 # Fararoni — Guia de Instalacion Rapida
 
-**Version: 1.0.0 | Marzo 2026**
+**Version: 1.0.0**
 
 > Esta guia te lleva paso a paso desde la descarga hasta tu primera conversacion
 > con Fararoni. Tiempo estimado: 5-10 minutos.
