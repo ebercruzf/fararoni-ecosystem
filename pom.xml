@@ -25,6 +25,7 @@
         <module>fararoni-core</module>
         <module>fararoni-gateway-rest</module>
         <module>fararoni-enterprise-transport</module>
+        <module>fararoni-sidecar-mcp</module>
         <module>fararoni-distribution</module>
         <!-- Pendientes (no incluidos en esta release)
         <module>fararoni-enterprise</module>

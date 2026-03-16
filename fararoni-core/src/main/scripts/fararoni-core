@@ -1,6 +1,7 @@
 #!/bin/bash
 # Fararoni CLI Launcher
 # FASE 47: Requiere --enable-preview para StructuredTaskScope (JEP 480)
+# FASE 1008: Usa -cp en vez de -jar para cargar modulos SPI desde lib/
 
 # Resolver symlinks para encontrar el directorio real
 SOURCE="${BASH_SOURCE[0]}"
@@ -12,6 +13,7 @@ done
 SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
 
 JAR_FILE="$SCRIPT_DIR/fararoni-core-1.0.0.jar"
+LIB_DIR="$SCRIPT_DIR/../lib"
 
 if [ ! -f "$JAR_FILE" ]; then
     echo " Error: JAR no encontrado en $JAR_FILE"
@@ -19,7 +21,17 @@ if [ ! -f "$JAR_FILE" ]; then
     exit 1
 fi
 
-# Ejecutar con preview features habilitadas
+# Construir classpath: core JAR + todos los JARs en lib/ y lib/deps/
+CLASSPATH="$JAR_FILE"
+if [ -d "$LIB_DIR" ]; then
+    CLASSPATH="$CLASSPATH:$LIB_DIR/*"
+fi
+if [ -d "$LIB_DIR/deps" ]; then
+    CLASSPATH="$CLASSPATH:$LIB_DIR/deps/*"
+fi
+
+# Ejecutar con -cp (no -jar) para que ServiceLoader descubra modulos SPI
 exec java --enable-preview \
     --enable-native-access=ALL-UNNAMED \
-    -jar "$JAR_FILE" "$@"
+    -cp "$CLASSPATH" \
+    dev.fararoni.core.FararoniMain "$@"
