@@ -58,9 +58,10 @@
             </includes>
         </fileSet>
 
+        <!-- Enterprise Transport (NATS/Redis) — solo se carga si el usuario lo activa -->
         <fileSet>
             <directory>${project.basedir}/../fararoni-enterprise-transport/target</directory>
-            <outputDirectory>lib</outputDirectory>
+            <outputDirectory>lib/enterprise</outputDirectory>
             <includes>
                 <include>fararoni-enterprise-transport-${project.version}.jar</include>
             </includes>
@@ -68,7 +69,7 @@
 
         <fileSet>
             <directory>${project.basedir}/../fararoni-enterprise-transport/target/dependency</directory>
-            <outputDirectory>lib/deps</outputDirectory>
+            <outputDirectory>lib/enterprise</outputDirectory>
             <includes>
                 <include>*.jar</include>
             </includes>

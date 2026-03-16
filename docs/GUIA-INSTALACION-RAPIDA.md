@@ -65,7 +65,15 @@ brew install fararoni
 1. Abre el archivo `Fararoni-Installer-macos-arm64.dmg`
 2. Doble-clic en **"Instalar Fararoni.command"**
 
-Si macOS bloquea la ejecucion: clic derecho > Abrir > Abrir.
+Si macOS muestra el mensaje **"Apple could not verify..."** y no permite abrirlo,
+abre una Terminal, navega a la carpeta donde esta el archivo y ejecuta:
+
+```bash
+cd /Volumes/Fararoni-Installer
+xattr -d com.apple.quarantine "Instalar Fararoni.command"
+```
+
+Luego vuelve a hacer doble-clic en el archivo. Esto solo es necesario la primera vez.
 
 Se abre una terminal y el instalador detecta que esta corriendo desde el DMG:
 
@@ -943,15 +951,42 @@ Esto reinicia el wizard de primera ejecucion. Los binarios en `~/Fararoni/` no s
 
 ### Desinstalar completamente
 
-Para eliminar Fararoni por completo (binarios + configuracion + datos):
+Para eliminar Fararoni por completo, ejecuta en orden:
 
 ```bash
+# 1. Detener y eliminar servicios del sistema (macOS)
+launchctl unload ~/Library/LaunchAgents/com.fararoni.*.plist 2>/dev/null
+rm -f ~/Library/LaunchAgents/com.fararoni.*.plist
+
+# 2. Eliminar symlink del comando global
+rm -f /usr/local/bin/fararoni
+rm -f ~/bin/fararoni
+
+# 3. Eliminar la instalacion (binarios, sidecars, logs)
 rm -rf ~/Fararoni
+
+# 4. Eliminar configuracion y datos de usuario (TOTP, master password, conversations)
 rm -rf ~/.fararoni
-rm -rf ~/.llm-fararoni
+
+# 5. Eliminar cache de librerias nativas (macOS)
+rm -rf ~/.llm-fararoni/native-tmp
 ```
 
-Si instalaste con Homebrew:
+> **Nota**: Si solo quieres reinstalar sin perder tu configuracion,
+> ejecuta solo los pasos 1, 2 y 3. El paso 4 borra tus 3 llaves
+> de seguridad y el historial de conversaciones. El paso 5 es cache
+> que se regenera automaticamente.
+
+**Linux** — en vez del paso 1, ejecuta:
+
+```bash
+sudo systemctl stop fararoni-core fararoni-sidecar-*
+sudo systemctl disable fararoni-core fararoni-sidecar-*
+sudo rm -f /etc/systemd/system/fararoni-*.service
+sudo systemctl daemon-reload
+```
+
+**Homebrew** — si instalaste con brew:
 
 ```bash
 brew uninstall fararoni
