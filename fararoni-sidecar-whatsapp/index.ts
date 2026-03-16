@@ -1,10 +1,9 @@
 /**
  * FARARONI WhatsApp Sidecar (TypeScript)
  *
- * FASE 71 - Sidecar Node.js para comunicacion con WhatsApp via Baileys
+ * Sidecar Node.js para comunicacion con WhatsApp via Baileys
  *
  * @author Eber Cruz
- * @since FASE 71
  */
 
 import express, { Request, Response } from 'express';
@@ -258,7 +257,7 @@ async function sendToGateway(message: UniversalMessage): Promise<void> {
 
 async function main(): Promise<void> {
   console.log('================================================');
-  console.log('  FARARONI WhatsApp Sidecar - FASE 71');
+  console.log('  FARARONI WhatsApp Sidecar');
   console.log('================================================');
   console.log(`Puerto Sidecar: ${CONFIG.PORT}`);
   console.log(`Gateway URL:    ${CONFIG.GATEWAY_URL}`);

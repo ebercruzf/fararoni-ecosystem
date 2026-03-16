@@ -53,7 +53,7 @@ const CONFIG = {
   // ID del canal
   CHANNEL_ID: 'whatsapp',
 
-  // FASE 71.4: Whitelist de grupos permitidos (separados por coma)
+  // Whitelist de grupos permitidos (separados por coma)
   // Ejemplo: "123456789@g.us,987654321@g.us"
   // Dejar vacio para ignorar TODOS los grupos
   ALLOWED_GROUPS: process.env.ALLOWED_GROUPS || '',
@@ -62,17 +62,14 @@ const CONFIG = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info'
 };
 
-// Logger con formato limpio (sin emojis)
+// Logger con formato limpio (compatible con SEA — sin pino-pretty transport)
 const logger = pino({
   level: CONFIG.LOG_LEVEL,
-  transport: {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'HH:MM:ss',
-      ignore: 'pid,hostname'
-    }
-  }
+  formatters: {
+    level(label) { return { level: label }; }
+  },
+  timestamp: () => `,"time":"${new Date().toISOString().slice(11, 19)}"`,
+  base: null  // Omite pid y hostname
 });
 
 // =============================================================================
@@ -254,7 +251,7 @@ async function connectToWhatsApp() {
       return;
     }
 
-    // FASE 71.4: Filtro de grupos con whitelist
+    // Filtro de grupos con whitelist
     if (msg.key.remoteJid.endsWith('@g.us')) {
       const groupJid = msg.key.remoteJid;
       const allowedGroups = CONFIG.ALLOWED_GROUPS.split(',').map(g => g.trim()).filter(g => g);
@@ -400,7 +397,7 @@ async function sendToGateway(message) {
 
 async function main() {
   logger.info('================================================');
-  logger.info('  FARARONI WhatsApp Sidecar - FASE 71');
+  logger.info('  FARARONI WhatsApp Sidecar');
   logger.info('================================================');
   logger.info(`Puerto Sidecar: ${CONFIG.SIDECAR_PORT}`);
   logger.info(`Gateway URL:    ${CONFIG.GATEWAY_URL}`);

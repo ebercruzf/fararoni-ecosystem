@@ -356,7 +356,7 @@ app.get('/status', (req, res) => {
 async function start() {
     console.log('');
     console.log('='.repeat(60));
-    console.log('  FARARONI SIDECAR - DISCORD (FASE 71.6)');
+    console.log('  FARARONI SIDECAR - DISCORD');
     console.log('='.repeat(60));
     console.log('');
 
