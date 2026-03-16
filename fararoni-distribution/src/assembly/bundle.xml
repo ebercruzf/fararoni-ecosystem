@@ -17,15 +17,14 @@
     <fileSets>
 
         <!-- ============================================================
-             bin/ — Binario nativo GraalVM
+             bin/ — Core JAR (shaded fat JAR)
              ============================================================ -->
         <fileSet>
             <directory>${project.basedir}/../fararoni-core/target</directory>
             <outputDirectory>bin</outputDirectory>
             <includes>
-                <include>fararoni-core</include>
+                <include>fararoni-core-${project.version}.jar</include>
             </includes>
-            <fileMode>0755</fileMode>
         </fileSet>
 
         <!-- ============================================================
@@ -41,8 +40,16 @@
         </fileSet>
 
         <!-- ============================================================
-             lib/ — JARs Enterprise (gateway, transport) para classpath
+             lib/ — JARs SPI + Enterprise para classpath
              ============================================================ -->
+        <fileSet>
+            <directory>${project.basedir}/../fararoni-agent-api/target</directory>
+            <outputDirectory>lib</outputDirectory>
+            <includes>
+                <include>fararoni-agent-api-${project.version}.jar</include>
+            </includes>
+        </fileSet>
+
         <fileSet>
             <directory>${project.basedir}/../fararoni-gateway-rest/target</directory>
             <outputDirectory>lib</outputDirectory>
@@ -64,6 +71,15 @@
             <outputDirectory>lib/deps</outputDirectory>
             <includes>
                 <include>*.jar</include>
+            </includes>
+        </fileSet>
+
+        <!-- MCP Bridge Sidecar (Java) -->
+        <fileSet>
+            <directory>${project.basedir}/../fararoni-sidecar-mcp/target</directory>
+            <outputDirectory>lib</outputDirectory>
+            <includes>
+                <include>fararoni-sidecar-mcp-${project.version}.jar</include>
             </includes>
         </fileSet>
 

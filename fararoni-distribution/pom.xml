@@ -51,6 +51,12 @@
             <version>${project.version}</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>dev.fararoni.enterprise</groupId>
+            <artifactId>fararoni-sidecar-mcp</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+        </dependency>
         <!-- FASE 10010 - Audio Core: pendiente
         <dependency>
             <groupId>dev.fararoni</groupId>
