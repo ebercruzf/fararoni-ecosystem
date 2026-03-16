@@ -1,8 +1,28 @@
 # Fararoni Suite — Guia de Instalacion
 
-## macOS (DMG)
+## Descargas
 
-**Archivo**: `fararoni-distribution/target/Fararoni-Installer.dmg`
+Todos los instaladores se generan automaticamente via GitHub Actions para las 3 plataformas.
+Descarga la version mas reciente desde:
+
+https://github.com/ebercruzf/fararoni-ecosystem/releases
+
+| Plataforma | Archivo |
+|------------|---------|
+| macOS (arm64) | `Fararoni-Installer-macos-arm64.dmg` |
+| Linux (x64) | `fararoni-v1.0.0-linux-x64.tar.gz` |
+| Windows (x64) | `fararoni-v1.0.0-windows-x64.zip` |
+
+### Homebrew (macOS / Linux)
+
+```bash
+brew tap ebercruzf/fararoni
+brew install fararoni
+```
+
+---
+
+## macOS (DMG)
 
 Al abrir el DMG se muestran 3 elementos:
 
@@ -14,7 +34,7 @@ Al abrir el DMG se muestran 3 elementos:
 
 ### Pasos
 
-1. Abrir `Fararoni-Installer.dmg`
+1. Abrir `Fararoni-Installer-macos-arm64.dmg`
 2. Opcion A: Doble-clic en **"Instalar Fararoni.command"** (wizard interactivo)
 3. Opcion B: Arrastrar **"Fararoni Suite"** a **Applications** (instalacion manual)
 4. Configurar credenciales en `~/.fararoni/config/`
@@ -44,52 +64,43 @@ LICENSE                  # Apache 2.0
 
 ## Windows
 
-**Archivo**: `fararoni-distribution/target/fararoni-v1.0.0.zip`
-
 ### Pasos
 
-1. Descomprimir `fararoni-v1.0.0.zip`
-2. Doble-clic en **"Instalar Fararoni.bat"** (wizard PowerShell)
-3. O ejecutar manualmente: `powershell -File installer.ps1`
-4. Configurar credenciales en `%USERPROFILE%\.fararoni\config\`
-
-> **Nota**: Los sidecars SEA actuales son binarios arm64 macOS. Para Windows se necesita
-> recompilar con `build-sidecars.sh` en una maquina Windows (o CI con Node.js para Windows).
+1. Descargar `fararoni-v1.0.0-windows-x64.zip` desde [Releases](https://github.com/ebercruzf/fararoni-ecosystem/releases)
+2. Descomprimir el ZIP
+3. Doble-clic en **"Instalar Fararoni.bat"** (wizard PowerShell)
+4. O ejecutar manualmente: `powershell -File installer.ps1`
+5. Configurar credenciales en `%USERPROFILE%\.fararoni\config\`
 
 ---
 
 ## Linux
 
-**Archivo**: `fararoni-distribution/target/fararoni-v1.0.0.tar.gz`
-
 ### Pasos
 
-1. `tar xzf fararoni-v1.0.0.tar.gz`
-2. `cd fararoni-v1.0.0 && chmod +x installer.sh && ./installer.sh`
-3. Configurar credenciales en `~/.fararoni/config/`
-4. Los sidecars se registran como servicios systemd
-
-> **Nota**: Los sidecars SEA actuales son binarios arm64 macOS. Para Linux se necesita
-> recompilar con `build-sidecars.sh` en una maquina Linux (o CI con Node.js para Linux).
+1. Descargar `fararoni-v1.0.0-linux-x64.tar.gz` desde [Releases](https://github.com/ebercruzf/fararoni-ecosystem/releases)
+2. `tar xzf fararoni-v1.0.0-linux-x64.tar.gz`
+3. `cd fararoni-v1.0.0 && chmod +x installer.sh && ./installer.sh`
+4. Configurar credenciales en `~/.fararoni/config/`
+5. Los sidecars se registran como servicios systemd
 
 ---
 
-## Generacion Cross-Platform (CI/CD)
+## Build desde fuente
 
-Para generar instaladores nativos en las 3 plataformas, se necesita un pipeline CI:
+Los binarios de cada plataforma se compilan automaticamente via GitHub Actions
+al crear un tag `v*`. El workflow (`.github/workflows/release.yml`) ejecuta:
 
+1. **Build sidecars SEA** — Cada runner (macOS/Linux/Windows) compila los 4 sidecars como binarios nativos usando Node.js SEA (esbuild + postject). Los binarios son platform-specific porque embeben el Node.js del OS donde se compilan.
+2. **Maven package** — Compila core + gateway + enterprise-transport y empaqueta todo en ZIP/TAR.GZ via maven-assembly-plugin.
+3. **Create DMG** (solo macOS) — Genera el instalador DMG con icono y layout personalizado.
+4. **Publish Release** — Sube todos los artefactos como GitHub Release.
+
+### Build local (macOS)
+
+```bash
+cd fararoni-distribution
+./build-sidecars.sh                    # Compila 4 sidecars SEA
+cd .. && mvn package -DskipTests       # Maven package
+cd fararoni-distribution && ./create-dmg.sh   # Genera DMG
 ```
-GitHub Actions Matrix:
-  - macos-latest (arm64)  → DMG + ZIP
-  - ubuntu-latest (x64)   → TAR.GZ + .deb (opcional)
-  - windows-latest (x64)  → ZIP + MSI (opcional)
-```
-
-Cada plataforma ejecuta:
-1. `./build-sidecars.sh` → genera binarios SEA nativos para ese OS
-2. `mvn package` → empaqueta en ZIP/TAR.GZ
-3. macOS: `./create-dmg.sh` → genera DMG
-4. Linux: `dpkg-deb` o `rpmbuild` (opcional)
-5. Windows: WiX Toolset o Inno Setup (opcional)
-
-Los sidecars SEA son **platform-specific** porque embeben el binario de Node.js del OS donde se compilan.
