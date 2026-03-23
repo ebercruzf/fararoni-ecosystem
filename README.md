@@ -1,4 +1,8 @@
-# C-FARARONI — Sovereign AI Agent Orchestrator
+# Fararoni Ecosystem & CLI
+
+🌍 *Read this in other languages: [English](README.md) | [Español](README.es.md)*
+
+---
 
 Multi-agent AI system that orchestrates local and cloud LLMs through an agentic DEFCON architecture. Zero-dependency distribution with GraalVM native binaries and Node.js SEA sidecars.
 
@@ -81,4 +85,31 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the Contributor License Agreement.
 
 ## Author
 
-**Eber Cruz**
+**Eber Cruz Fararoni** — Project Founder & Lead Architect
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md) for the full contributor roster.
+
+---
+
+## The Fararoni Vision: A Sovereign Journey
+
+Fararoni is more than a high-performance orchestrator; it is a collaborative environment designed for those who value **technical independence and architectural excellence**.
+
+We believe that true innovation happens when expertise is respected. Here, the **Sidecar Architecture** ensures that every contributor maintains sovereignty over their own modules. Whether you are optimizing a core routine in **Java**, crafting a sophisticated interface in **Angular**, or integrating physical hardware, you have a place here.
+
+> *"Engineering is not just about code; it's about the legacy we build together."*
+
+## Governance & Sovereignty
+
+To maintain our standard of excellence and protect the collective effort, Fararoni operates under a professional framework that ensures order and long-term sovereignty for the project and its contributors.
+
+* **Sidecar Architects:** You own your specialized modules. We provide the foundation; you provide the vision.
+* **Domain Experts:** If you have a vision involving sensors or industrial devices but lack the software infrastructure, we are open to exploring how Fararoni can bridge that gap.
+
+---
+
+### How to Join
+
+If you have the willingness and the time to transcend the conventional, explore our **[CONTRIBUTING.md](CONTRIBUTING.md)**. We don't just seek code; we seek the spirit of collaboration that makes technology truly human.
+
+**Maintained by [Eber Cruz Fararoni](https://fararoni.dev)**
