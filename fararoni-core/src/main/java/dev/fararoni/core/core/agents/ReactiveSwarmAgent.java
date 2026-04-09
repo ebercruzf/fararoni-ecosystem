@@ -30,9 +30,11 @@ import java.util.logging.Logger;
 
 /**
  * @author Eber Cruz
+ * @version 1.0.0
  * @since 1.0.0
  */
 public abstract class ReactiveSwarmAgent {
+
     private static final Logger LOG = Logger.getLogger(ReactiveSwarmAgent.class.getName());
 
     protected static final String TASK_TOPIC_PREFIX = "swarm.task.";
@@ -51,7 +53,28 @@ public abstract class ReactiveSwarmAgent {
 
     private final List<String> subscribedTopics = new ArrayList<>();
 
+    private final List<java.util.concurrent.Flow.Subscription> busSubscriptions =
+        new java.util.concurrent.CopyOnWriteArrayList<>();
+
     protected final AgentTemplate template;
+
+    private static volatile dev.fararoni.core.core.prompt.PromptCompactor sharedPromptCompactor;
+
+    private static volatile String currentModelId;
+
+    public static void setSharedPromptCompactor(dev.fararoni.core.core.prompt.PromptCompactor compactor) {
+        sharedPromptCompactor = compactor;
+        LOG.info("ReactiveSwarmAgent: PromptCompactor configured (Protocol Sharding active)");
+    }
+
+    public static void setCurrentModelId(String modelId) {
+        currentModelId = modelId;
+        LOG.fine("ReactiveSwarmAgent: Current model updated to: " + modelId);
+    }
+
+    public static String getCurrentModelId() {
+        return currentModelId;
+    }
 
     protected ReactiveSwarmAgent(AgentTemplate template, SovereignEventBus bus) {
         this.template = template;
@@ -92,14 +115,28 @@ public abstract class ReactiveSwarmAgent {
         state = AgentState.IDLE;
         subscribedTopics.clear();
 
+        if (template != null && template.metadata() != null) {
+            Object execMode = template.metadata().get("executionMode");
+            if ("direct".equals(String.valueOf(execMode))) {
+                LOG.info("Agent '" + agentId + "' en modo STANDBY (executionMode=direct). "
+                    + "No se suscribe al bus de tareas. Invocable solo directamente.");
+                publishTelemetry("STANDBY",
+                    "Agent registered in standby mode (executionMode=direct, capabilities="
+                    + capabilities + ")");
+                return;
+            }
+        }
+
         for (String capability : capabilities) {
             String taskTopic = TASK_TOPIC_PREFIX + capability;
             String compTopic = COMPENSATION_TOPIC_PREFIX + capability;
 
-            bus.subscribe(taskTopic, Object.class, this::handleTaskEnvelope);
+            var taskSub = bus.subscribe(taskTopic, Object.class, this::handleTaskEnvelope);
+            if (taskSub != null) busSubscriptions.add(taskSub);
             subscribedTopics.add(taskTopic);
 
-            bus.subscribe(compTopic, Object.class, this::handleCompensationEnvelope);
+            var compSub = bus.subscribe(compTopic, Object.class, this::handleCompensationEnvelope);
+            if (compSub != null) busSubscriptions.add(compSub);
             subscribedTopics.add(compTopic);
 
             LOG.info("Agent '" + agentId + "' subscribed to: " + taskTopic);
@@ -126,6 +163,18 @@ public abstract class ReactiveSwarmAgent {
 
         running = false;
         state = AgentState.STOPPED;
+
+        int subCount = busSubscriptions.size();
+        for (var sub : busSubscriptions) {
+            try {
+                sub.cancel();
+            } catch (Exception e) {
+                LOG.warning("Error cancelling subscription for agent " + agentId
+                    + ": " + e.getMessage());
+            }
+        }
+        busSubscriptions.clear();
+        LOG.info("Agent '" + agentId + "' cancelled " + subCount + " bus subscriptions");
 
         int topicCount = subscribedTopics.size();
         subscribedTopics.clear();
@@ -169,17 +218,21 @@ public abstract class ReactiveSwarmAgent {
 
                 AgentResult result = processTask(envelope);
 
+                String promptInfo = " [prompt=" + lastPromptVariant
+                        + (lastPromptModel != null ? " model=" + lastPromptModel : "") + "]";
+
                 if (result.success()) {
                     System.out.println("[AGENT:" + agentId + "] [OK] COMPLETED: " + result.message());
                     state = AgentState.COMPLETED;
-                    publishTelemetry("COMPLETED", result.message());
+                    publishTelemetry("COMPLETED" + promptInfo, result.message());
                     publishResult(envelope, result, "success");
                 } else {
                     System.out.println("[AGENT:" + agentId + "] [ERROR] FAILED: " + result.message());
                     state = AgentState.FAILED;
-                    publishTelemetry("FAILED", result.message());
+                    publishTelemetry("FAILED" + promptInfo, result.message());
                     publishResult(envelope, result, "failure");
                 }
+
             } catch (Exception e) {
                 System.out.println("[AGENT:" + agentId + "] [ERROR] " + e.getMessage());
                 LOG.log(Level.SEVERE, "Task failed: " + role, e);
@@ -213,6 +266,7 @@ public abstract class ReactiveSwarmAgent {
                     LOG.severe("Compensation failed - sending to DLQ: " + role);
                     publishToDLQ(envelope, result.message());
                 }
+
             } catch (Exception e) {
                 LOG.log(Level.SEVERE, "Compensation failed: " + role, e);
                 publishToDLQ(envelope, e.getMessage());
@@ -300,11 +354,52 @@ public abstract class ReactiveSwarmAgent {
         return template;
     }
 
+    private static final String SOVEREIGN_RIGOR_DIRECTIVE = """
+
+        ═══════════════════════════════════════════════════════════════
+        DIRECTIVA DE RIGOR SOBERANO (aplica a todos los agentes)
+        ═══════════════════════════════════════════════════════════════
+        PROHIBIDO SUPONER. Si no lo verificaste, no lo afirmes.
+        - Antes de reportar éxito: ¿qué evidencia concreta lo confirma?
+        - Antes de proponer un cambio: ¿leíste el código actual o estás
+          adivinando?
+        - Antes de descartar una opción: ¿la evaluaste o solo la ignoraste?
+        - Si no puedes verificar algo, dilo explícitamente en lugar de
+          asumir que funciona.
+        Ser riguroso NO contradice ser eficiente. Suponer y fallar
+        desperdicia más tiempo que verificar y acertar.
+        ═══════════════════════════════════════════════════════════════
+        """;
+
+    public enum PromptVariant { PROSE_CLOUD, JSON_LOCAL, JSON_EDGE }
+    private volatile PromptVariant lastPromptVariant = PromptVariant.PROSE_CLOUD;
+    private volatile String lastPromptModel;
+
+    public PromptVariant getLastPromptVariant() { return lastPromptVariant; }
+    public String getLastPromptModel() { return lastPromptModel; }
+
     public String getSystemPrompt() {
+        String base;
         if (template != null && template.systemPrompt() != null) {
-            return template.systemPrompt();
+            base = template.systemPrompt();
+        } else {
+            base = "You are " + role + " agent. Process the task and return results.";
         }
-        return "You are " + role + " agent. Process the task and return results.";
+
+        if (sharedPromptCompactor != null && currentModelId != null
+                && sharedPromptCompactor.requiresCompaction(currentModelId)) {
+            lastPromptModel = currentModelId;
+            lastPromptVariant = sharedPromptCompactor.isEdgeModel(currentModelId)
+                    ? PromptVariant.JSON_EDGE : PromptVariant.JSON_LOCAL;
+            LOG.fine(() -> "[PROTOCOL-SHARDING] " + agentId + " → " + lastPromptVariant
+                    + " (modelo: " + currentModelId + ")");
+
+            return sharedPromptCompactor.compact(base, currentModelId, agentId);
+        }
+
+        lastPromptModel = currentModelId;
+        lastPromptVariant = PromptVariant.PROSE_CLOUD;
+        return base + SOVEREIGN_RIGOR_DIRECTIVE;
     }
 
     public List<String> getSubscribedTopics() {

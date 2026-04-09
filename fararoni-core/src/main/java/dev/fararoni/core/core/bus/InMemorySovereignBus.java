@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 
 /**
  * @author Eber Cruz
+ * @version 1.0.0
  * @since 1.0.0
  */
 public class InMemorySovereignBus implements SovereignEventBus {
@@ -268,10 +269,12 @@ public class InMemorySovereignBus implements SovereignEventBus {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> void subscribe(String topic, Class<T> payloadType, Consumer<SovereignEnvelope<T>> consumer) {
+    public <T> Flow.Subscription subscribe(String topic, Class<T> payloadType, Consumer<SovereignEnvelope<T>> consumer) {
         var publisher = channels.computeIfAbsent(topic, k ->
             new SubmissionPublisher<>(vExecutor, Flow.defaultBufferSize())
         );
+
+        var subscriptionRef = new java.util.concurrent.atomic.AtomicReference<Subscription>();
 
         publisher.subscribe(new Subscriber<SovereignEnvelope<?>>() {
             private Subscription subscription;
@@ -279,6 +282,7 @@ public class InMemorySovereignBus implements SovereignEventBus {
             @Override
             public void onSubscribe(Subscription subscription) {
                 this.subscription = subscription;
+                subscriptionRef.set(subscription);
                 subscription.request(Long.MAX_VALUE);
             }
 
@@ -348,6 +352,7 @@ public class InMemorySovereignBus implements SovereignEventBus {
         });
 
         LOG.info("[SOVEREIGN-BUS] Suscrito a: " + topic);
+        return subscriptionRef.get();
     }
 
     private <T> void subscribeOnce(String topic, Class<T> payloadType, Consumer<SovereignEnvelope<T>> consumer) {

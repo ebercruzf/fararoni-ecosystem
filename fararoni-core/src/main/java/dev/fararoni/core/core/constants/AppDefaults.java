@@ -267,6 +267,12 @@ public final class AppDefaults {
     public static final String DEFAULT_CLAUDE_BASE_URL = "https://api.anthropic.com";
     public static final String ANTHROPIC_API_VERSION = "2023-06-01";
 
+    public static final String ENV_DEEPSEEK_API_KEY = "DEEPSEEK_API_KEY";
+    public static final String ENV_DEEPSEEK_MODEL = "FARARONI_DEEPSEEK_MODEL";
+    public static final String ENV_DEEPSEEK_PREFERRED = "FARARONI_DEEPSEEK_PREFERRED";
+    public static final String DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
+    public static final String DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com";
+
     public static final boolean DEFAULT_AGENTIC_ENABLED = true;
 
     public static final String DEFAULT_AGENTIC_URL = "http://localhost:11434";

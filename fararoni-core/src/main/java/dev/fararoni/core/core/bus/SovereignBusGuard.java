@@ -132,9 +132,19 @@ public class SovereignBusGuard implements SovereignEventBus {
     }
 
     @Override
-    public <T> void subscribe(String topic, Class<T> payloadType, Consumer<SovereignEnvelope<T>> consumer) {
-        primaryBus.subscribe(topic, payloadType, consumer);
-        standbyBus.subscribe(topic, payloadType, consumer);
+    public <T> java.util.concurrent.Flow.Subscription subscribe(String topic, Class<T> payloadType, Consumer<SovereignEnvelope<T>> consumer) {
+        var primarySub = primaryBus.subscribe(topic, payloadType, consumer);
+        var standbySub = standbyBus.subscribe(topic, payloadType, consumer);
+        return new java.util.concurrent.Flow.Subscription() {
+            @Override public void request(long n) {
+                if (primarySub != null) primarySub.request(n);
+                if (standbySub != null) standbySub.request(n);
+            }
+            @Override public void cancel() {
+                if (primarySub != null) primarySub.cancel();
+                if (standbySub != null) standbySub.cancel();
+            }
+        };
     }
 
     @Override

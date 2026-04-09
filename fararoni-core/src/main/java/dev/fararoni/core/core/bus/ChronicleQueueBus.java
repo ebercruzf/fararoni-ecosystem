@@ -143,13 +143,19 @@ public class ChronicleQueueBus implements SovereignEventBus, AutoCloseable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> void subscribe(String topic, Class<T> payloadType, Consumer<SovereignEnvelope<T>> consumer) {
-        subscribers.computeIfAbsent(topic, k -> new CopyOnWriteArrayList<>())
-            .add(new SubscriberEntry<>(payloadType, (Consumer<SovereignEnvelope<?>>) (Consumer<?>) consumer));
+    public <T> java.util.concurrent.Flow.Subscription subscribe(String topic, Class<T> payloadType, Consumer<SovereignEnvelope<T>> consumer) {
+        var entry = new SubscriberEntry<>(payloadType, (Consumer<SovereignEnvelope<?>>) (Consumer<?>) consumer);
+        var list = subscribers.computeIfAbsent(topic, k -> new CopyOnWriteArrayList<>());
+        list.add(entry);
 
         startTailerIfNeeded(topic);
 
         LOG.info("[CHRONICLE-BUS] Suscrito a: " + topic);
+
+        return new java.util.concurrent.Flow.Subscription() {
+            @Override public void request(long n) { }
+            @Override public void cancel() { list.remove(entry); }
+        };
     }
 
     @Override

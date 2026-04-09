@@ -21,6 +21,7 @@ import dev.fararoni.core.client.VllmClient;
 import dev.fararoni.core.core.clients.AgentClient.AgentResponse;
 import dev.fararoni.core.core.clients.AgentClient.ToolCall;
 import dev.fararoni.core.core.clients.AnthropicClient;
+import dev.fararoni.core.core.clients.DeepSeekClient;
 import dev.fararoni.core.core.clients.OpenAICompatibleClient;
 import dev.fararoni.core.core.skills.HardwareTelemetryScanner;
 import dev.fararoni.core.core.skills.ModelFamily;
@@ -70,7 +71,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * @author Eber Cruz
+ * @version 1.0.0
+ * @since 1.0.0
+ */
 public class FaraCoreLlmDispatcher {
+
     private static final Logger LOG = Logger.getLogger(FaraCoreLlmDispatcher.class.getName());
 
     private static void traceToFile(String msg) {
@@ -105,6 +112,8 @@ public class FaraCoreLlmDispatcher {
     volatile OpenAICompatibleClient rabbitAgenticClient;
     volatile AnthropicClient claudeClient;
     volatile boolean claudePreferred = false;
+    volatile DeepSeekClient deepSeekClient;
+    volatile boolean deepSeekPreferred = false;
     ToolRegistry toolRegistry;
     ToolExecutor toolExecutor;
 
@@ -199,6 +208,7 @@ public class FaraCoreLlmDispatcher {
 
             LOG.info(() -> "[FARARONI] Motor nativo CONFIGURADO (lazy): " + localConfig.modelPath());
             return service;
+
         } catch (Exception e) {
             LOG.warning(() -> "[FARARONI] Motor nativo: Error de inicializacion: " + e.getMessage());
             return null;
@@ -209,6 +219,7 @@ public class FaraCoreLlmDispatcher {
                                    LlmProviderDiscovery.DiscoveryResult discoveryResult,
                                    String apiKey) {
         if (discoveryResult.success()) {
+
             String rabbitModelName;
             String rabbitServerUrl = discoveryResult.serverUrl();
 
@@ -220,7 +231,13 @@ public class FaraCoreLlmDispatcher {
                 if (savedRabbitUrl != null && !savedRabbitUrl.isBlank()) {
                     rabbitServerUrl = savedRabbitUrl;
                 }
-                LOG.info(() -> "[FARARONI] Rabbit restaurado de Hot-Swap: " + rabbitModelName);
+                this.currentRabbitMode = (savedRabbitModel.contains("35b")
+                        || savedRabbitModel.contains("32b")
+                        || savedRabbitModel.contains("70b"))
+                    ? FararoniCore.RabbitMode.REMOTE_LARGE
+                    : FararoniCore.RabbitMode.REMOTE_SMALL;
+                LOG.info(() -> "[FARARONI] Rabbit restaurado de Hot-Swap: " + rabbitModelName
+                    + " (mode=" + currentRabbitMode + ")");
             } else {
                 String envRabbit = System.getenv(AppDefaults.ENV_RABBIT_MODEL);
                 if (envRabbit != null && !envRabbit.isBlank()) {
@@ -267,6 +284,7 @@ public class FaraCoreLlmDispatcher {
             LOG.info(() -> "[FARARONI] Arquitectura Dual Activada: Rabbit(" + fastClient.getModelName() +
                 ", " + AppDefaults.RABBIT_CONTEXT_WINDOW + " ctx) | Turtle(" + expertClient.getModelName() +
                 ", " + AppDefaults.TURTLE_CONTEXT_WINDOW + " ctx)");
+
         } else {
             LOG.warning("[FARARONI] " + discoveryResult.message());
 
@@ -353,6 +371,18 @@ public class FaraCoreLlmDispatcher {
             LOG.info(() -> "[FARARONI] Claude API activado: " + finalModel + " (preferred=" + claudePreferred + ")");
         }
 
+        String deepSeekKey = System.getenv(AppDefaults.ENV_DEEPSEEK_API_KEY);
+        if (deepSeekKey != null && !deepSeekKey.isBlank()) {
+            String deepSeekModel = System.getenv(AppDefaults.ENV_DEEPSEEK_MODEL);
+            if (deepSeekModel == null || deepSeekModel.isBlank()) deepSeekModel = AppDefaults.DEFAULT_DEEPSEEK_MODEL;
+            this.deepSeekClient = new DeepSeekClient(deepSeekKey, deepSeekModel);
+            String envPref = System.getenv(AppDefaults.ENV_DEEPSEEK_PREFERRED);
+            this.deepSeekPreferred = envPref == null || !"false".equalsIgnoreCase(envPref);
+            String finalModel = deepSeekModel;
+            System.out.println("[FARARONI] DeepSeek API activado: " + finalModel + " (preferred=" + deepSeekPreferred + ")");
+            LOG.info(() -> "[FARARONI] DeepSeek API activado: " + finalModel + " (preferred=" + deepSeekPreferred + ")");
+        }
+
         if (this.claudeClient == null) {
             String savedClaudeMode = SecureConfigService.getInstance().getProperty("claude.mode");
             if ("ACTIVE".equals(savedClaudeMode)) {
@@ -367,6 +397,24 @@ public class FaraCoreLlmDispatcher {
                     String restoredModel = savedClaudeModel;
                     System.out.println("[FARARONI] Claude restaurado de SecureConfig: " + restoredModel);
                     LOG.info(() -> "[FARARONI] Claude restaurado de SecureConfig: " + restoredModel);
+                }
+            }
+        }
+
+        if (this.deepSeekClient == null) {
+            String savedDeepSeekMode = SecureConfigService.getInstance().getProperty("deepseek.mode");
+            if ("ACTIVE".equals(savedDeepSeekMode)) {
+                String savedDeepSeekKey = SecureConfigService.getInstance().getSecureProperty("deepseek.api.key");
+                String savedDeepSeekModel = SecureConfigService.getInstance().getProperty("deepseek.model");
+                if (savedDeepSeekKey != null && !savedDeepSeekKey.isBlank()) {
+                    if (savedDeepSeekModel == null || savedDeepSeekModel.isBlank()) {
+                        savedDeepSeekModel = AppDefaults.DEFAULT_DEEPSEEK_MODEL;
+                    }
+                    this.deepSeekClient = new DeepSeekClient(savedDeepSeekKey, savedDeepSeekModel);
+                    this.deepSeekPreferred = true;
+                    String restoredModel = savedDeepSeekModel;
+                    System.out.println("[FARARONI] DeepSeek restaurado de SecureConfig: " + restoredModel);
+                    LOG.info(() -> "[FARARONI] DeepSeek restaurado de SecureConfig: " + restoredModel);
                 }
             }
         }
@@ -409,8 +457,8 @@ public class FaraCoreLlmDispatcher {
                 ).withOverseer(agentTemplateManager);
                 this.fileSystemListener.start();
                 boolean overseerActive = this.fileSystemListener.isOverseerEnabled();
-                LOG.info("FileSystemIntentListener activo (Event-Driven File Writing)");
-                LOG.info("[B] " + (overseerActive ? "[OK]" : "[!]") +
+                System.out.println("[FASE 55.3.8]  FileSystemIntentListener activo (Event-Driven File Writing)");
+                System.out.println("[B] " + (overseerActive ? "[OK]" : "[!]") +
                     " Overseer Validator " + (overseerActive ? "ACTIVO" : "INACTIVO (sin AgentTemplateManager)"));
 
                 this.notaryAuditListener = new NotaryAuditListener(
@@ -439,6 +487,7 @@ public class FaraCoreLlmDispatcher {
             System.out.println(" Herramientas base: " + baseTools + " | Con Exercism: " + exercismTools);
             LOG.info(() -> "[FARARONI]  Cliente Agéntico inicializado: " + modelName +
                 " (Tools: " + baseTools + " base, " + exercismTools + " exercism)");
+
         } catch (Exception e) {
             System.out.println(" Error inicializando cliente agéntico: " + e.getMessage());
             e.printStackTrace();
@@ -454,6 +503,12 @@ public class FaraCoreLlmDispatcher {
         if (bareResult != null) {
             LOG.info("[BARE-CMD] Respuesta directa del Kernel: " + truncateForLog(bareResult, 80));
             return bareResult;
+        }
+
+        String swarmDelegation = detectSwarmDelegation(trimmed);
+        if (swarmDelegation != null) {
+            LOG.info("[PRE-ROUTING] Delegación directa al swarm detectada: " + swarmDelegation);
+            return invokeSwarmMissionDirectly(prompt, swarmDelegation);
         }
 
         boolean isSimpleChat = trimmed.length() < 30 &&
@@ -514,6 +569,7 @@ public class FaraCoreLlmDispatcher {
 
                 var responseObj = client.generate(request);
                 return responseObj.text();
+
             } catch (Exception e) {
                 if (e.getMessage() != null &&
                     (e.getMessage().contains("context") || e.getMessage().contains("length"))) {
@@ -604,6 +660,33 @@ public class FaraCoreLlmDispatcher {
         }
     }
 
+    public String executeWithActiveTurtle(String prompt) {
+        if (prompt != null && !prompt.isBlank()) {
+            String swarmDelegation = detectSwarmDelegation(prompt.trim().toLowerCase());
+            if (swarmDelegation != null) {
+                LOG.info("[PRE-ROUTING] (active-turtle) Delegación directa al swarm: " + swarmDelegation);
+                return invokeSwarmMissionDirectly(prompt, swarmDelegation);
+            }
+        }
+        if (deepSeekPreferred && deepSeekClient != null) {
+            return executeWithDeepSeek(prompt);
+        }
+        if (claudePreferred && claudeClient != null) {
+            return executeWithClaude(prompt);
+        }
+        return executeExpertWithFallbackSilent(prompt);
+    }
+
+    public String getActiveTurtleName() {
+        if (deepSeekPreferred) return "DeepSeek (" + getDeepSeekModelName() + ")";
+        if (claudePreferred) return "Claude (" + getClaudeModelName() + ")";
+        return "Turtle (" + getTurtleModelName() + ")";
+    }
+
+    public boolean isCloudTurtleActive() {
+        return claudePreferred || deepSeekPreferred;
+    }
+
     public String executeWithToolCalling(String systemPrompt, String userMessage, VllmClient client) {
         if (client == null || toolRegistry == null || toolExecutor == null) {
             return null;
@@ -618,6 +701,7 @@ public class FaraCoreLlmDispatcher {
             }
 
             ArrayNode messages = JSON_MAPPER.createArrayNode();
+
             ObjectNode sysMsg = JSON_MAPPER.createObjectNode();
             sysMsg.put("role", "system");
             sysMsg.put("content", systemPrompt);
@@ -641,6 +725,7 @@ public class FaraCoreLlmDispatcher {
                 payload.put("tool_choice", "auto");
 
                 JsonNode response = client.generateWithTools(payload);
+
                 JsonNode choices = response.path("choices");
                 if (choices.isEmpty() || !choices.isArray()) {
                     LOG.warning("[TOOL-CALLING] Respuesta sin choices");
@@ -750,10 +835,12 @@ public class FaraCoreLlmDispatcher {
 
                     LOG.info("[TOOL-CALLING] Resultado " + functionName + ": " + truncateForLog(toolResult, 80));
                 }
+
             }
 
             LOG.warning("[TOOL-CALLING] Se alcanzo el limite de " + MAX_TOOL_CALL_TURNS + " turnos");
             return null;
+
         } catch (Exception e) {
             LOG.warning("[TOOL-CALLING] Error en ciclo: " + e.getMessage());
             return null;
@@ -790,7 +877,7 @@ public class FaraCoreLlmDispatcher {
                                     if (node.has("name") && node.has("arguments")) {
                                         calls.add(node);
                                     }
-                                } catch (Exception ignored) {  }
+                                } catch (Exception ignored) {}
                                 i = j + 1;
                                 break;
                             }
@@ -938,6 +1025,7 @@ public class FaraCoreLlmDispatcher {
         }
 
         String commitMsg = extractCommitMessage(input);
+
         String commitResult = executeShellDirect("git commit -m \"" + commitMsg + "\"");
         if (commitResult != null && commitResult.contains("create mode")) {
             LOG.info("[COMPOSITE-GIT] Commit exitoso");
@@ -1017,6 +1105,7 @@ public class FaraCoreLlmDispatcher {
         }
 
         if (files.length > 5) return "project";
+
         return parentDirs.iterator().next();
     }
 
@@ -1275,6 +1364,7 @@ public class FaraCoreLlmDispatcher {
 
             LOG.warning("[REACT-LOOP] No se pudo mapear herramienta embebida: " + tool);
             return "No pude ejecutar esa operación. Intenta ser más específico.";
+
         } catch (Exception e) {
             LOG.warning("[REACT-LOOP] Error parseando JSON embebido: " + e.getMessage());
             return "Ocurrió un error procesando tu solicitud.";
@@ -1312,8 +1402,10 @@ public class FaraCoreLlmDispatcher {
             ToolExecutionResult toolResult,
             List<ObjectNode> tools,
             ToolAwareTelemetry monitor) {
+
         try {
             String continuationPrompt = contextVault.buildCognitivePrompt(userPrompt, toolCall, toolResult);
+
             var cogClient = resolveAgenticClient(null);
             AgentResponse continuationResponse = cogClient.generateWithTools(
                     systemPrompt,
@@ -1342,6 +1434,7 @@ public class FaraCoreLlmDispatcher {
             }
 
             return finalText != null ? finalText : toolResult.message();
+
         } catch (Exception e) {
             LOG.severe("[REACT-LOOP] Error en continuación: " + e.getMessage());
             return toolResult.message();
@@ -1355,6 +1448,7 @@ public class FaraCoreLlmDispatcher {
             ToolExecutionResult toolResult,
             List<ObjectNode> tools,
             ToolAwareTelemetry monitor) {
+
         if (isEnvironmentError(toolResult.message())) {
             traceToFile("FIX-E-GATE → ENVIRONMENT ERROR detected, routing to FIX-E");
             LOG.info("[FIX-E] Error de entorno/runtime detectado. Derivando a carril FIX-E.");
@@ -1366,6 +1460,7 @@ public class FaraCoreLlmDispatcher {
         ToolExecutionResult currentResult = toolResult;
 
         try {
+
             ArrayNode messages = JSON_MAPPER.createArrayNode();
 
             ObjectNode sysMsg = JSON_MAPPER.createObjectNode();
@@ -1420,6 +1515,7 @@ public class FaraCoreLlmDispatcher {
                         + "NO expliques los errores — corrígelos directamente con herramientas. "
                         + "Si corriges un archivo, verifica la compilación inmediatamente después.";
                 }
+
             }
 
             ObjectNode toolMsg = JSON_MAPPER.createObjectNode();
@@ -1435,6 +1531,7 @@ public class FaraCoreLlmDispatcher {
             boolean distilled = false;
 
             for (int depth = 0; depth < MAX_REACT_DEPTH; depth++) {
+
                 if (!distilled && !isClaudePreferred() && (patchFailCount == 2 || depth == 6)) {
                     int beforeDistill = messages.size();
                     int removed = MessageHistoryDistiller.distill(messages, 3);
@@ -1460,10 +1557,12 @@ public class FaraCoreLlmDispatcher {
                         + " lastTool=" + lastToolUsed + " retry=" + interceptorRetries
                         + " toolsCount=" + tools.size() + " mode=ONE-SHOT+INTERCEPTOR");
 
-                    var continuationClient = (claudePreferred && claudeClient != null)
-                        ? (dev.fararoni.core.core.clients.AgentClient) claudeClient
-                        : agenticClient;
-                    String toolChoice = isClaudePreferred() ? "auto" : "required";
+                    var continuationClient = (deepSeekPreferred && deepSeekClient != null)
+                        ? (dev.fararoni.core.core.clients.AgentClient) deepSeekClient
+                        : (claudePreferred && claudeClient != null)
+                            ? (dev.fararoni.core.core.clients.AgentClient) claudeClient
+                            : agenticClient;
+                    String toolChoice = (isClaudePreferred() || isDeepSeekPreferred()) ? "auto" : "required";
                     AgentResponse response = continuationClient.generateWithFullHistory(
                         messages, tools, toolChoice);
 
@@ -1511,6 +1610,7 @@ public class FaraCoreLlmDispatcher {
                         nextCall = new ToolCall(normalizedName, rawCall.argumentsJson());
                         traceToFile("INTERCEPTOR → ACCEPTED tool=" + normalizedName);
                         break;
+
                     } else {
                         interceptorRetries++;
                         LOG.warning("[INTERCEPTOR] RECHAZO #" + interceptorRetries
@@ -1705,6 +1805,7 @@ public class FaraCoreLlmDispatcher {
                 "Intentaste corregir los errores de compilación pero no se resolvieron completamente. " +
                 "Último resultado: " + truncateForLog(currentResult.message(), 2000) +
                 "\nExplica al usuario qué errores quedan y cómo solucionarlos manualmente.");
+
         } catch (Exception e) {
             LOG.severe("[REACT-CONTINUATION] Error en continuación: " + e.getMessage());
             traceToFile("REACT-EXCEPTION class=" + e.getClass().getSimpleName()
@@ -1749,6 +1850,7 @@ public class FaraCoreLlmDispatcher {
             ToolExecutionResult toolResult,
             List<ObjectNode> tools,
             ToolAwareTelemetry monitor) {
+
         final int MAX_FIXE_DEPTH = 12;
         ToolExecutionResult currentResult = toolResult;
 
@@ -1813,6 +1915,7 @@ public class FaraCoreLlmDispatcher {
             String lastToolUsed = toolCall.functionName();
 
             for (int depth = 0; depth < MAX_FIXE_DEPTH; depth++) {
+
                 if (!isClaudePreferred()) {
                     injectFixECertaintyDirective(messages, lastToolUsed);
                 }
@@ -1822,10 +1925,12 @@ public class FaraCoreLlmDispatcher {
                 traceToFile("FIX-E depth=" + (depth + 1) + " msgs=" + messages.size()
                     + " lastTool=" + lastToolUsed + " mode=ENVIRONMENT-REPAIR");
 
-                var continuationClient = (claudePreferred && claudeClient != null)
-                    ? (dev.fararoni.core.core.clients.AgentClient) claudeClient
-                    : agenticClient;
-                String toolChoice = isClaudePreferred() ? "auto" : "required";
+                var continuationClient = (deepSeekPreferred && deepSeekClient != null)
+                    ? (dev.fararoni.core.core.clients.AgentClient) deepSeekClient
+                    : (claudePreferred && claudeClient != null)
+                        ? (dev.fararoni.core.core.clients.AgentClient) claudeClient
+                        : agenticClient;
+                String toolChoice = (isClaudePreferred() || isDeepSeekPreferred()) ? "auto" : "required";
                 AgentResponse response = continuationClient.generateWithFullHistory(
                     messages, tools, toolChoice);
 
@@ -1934,6 +2039,7 @@ public class FaraCoreLlmDispatcher {
                 "Intentaste corregir el error de entorno/configuración pero no se resolvió completamente. " +
                 "Último resultado: " + truncateForLog(currentResult.message(), 2000) +
                 "\nExplica al usuario qué incompatibilidad queda y cómo solucionarla manualmente.");
+
         } catch (Exception e) {
             LOG.severe("[FIX-E] Error en continuación: " + e.getMessage());
             traceToFile("FIX-E-EXCEPTION class=" + e.getClass().getSimpleName()
@@ -2208,6 +2314,7 @@ public class FaraCoreLlmDispatcher {
 
             return response.textContent() != null ? response.textContent() :
                    "No pude generar una respuesta. Por favor, intenta reformular tu pregunta.";
+
         } catch (Exception e) {
             LOG.severe("[REACT-LOOP] Error forzando respuesta: " + e.getMessage());
             return "Error procesando tu solicitud.";
@@ -2235,6 +2342,7 @@ public class FaraCoreLlmDispatcher {
             String userPrompt,
             String cognitiveText,
             List<ObjectNode> tools) {
+
         try {
             LOG.info("[REACT-LOOP] Forzando continuacion despues de texto cognitivo...");
 
@@ -2268,6 +2376,7 @@ public class FaraCoreLlmDispatcher {
             }
 
             return result != null ? result : "No pude generar el análisis. Intenta con una pregunta más específica.";
+
         } catch (Exception e) {
             LOG.severe("[REACT-LOOP] Error manejando texto cognitivo: " + e.getMessage());
             return "Error procesando tu solicitud de análisis.";
@@ -2302,6 +2411,7 @@ public class FaraCoreLlmDispatcher {
             );
 
             LOG.info("[HOT-SWAP] Cliente candidato instanciado");
+
         } catch (Exception e) {
             throw new IllegalStateException(
                 "[ERROR] FALLO EN INSTANCIACION: " + e.getMessage(), e);
@@ -2317,6 +2427,7 @@ public class FaraCoreLlmDispatcher {
             }
 
             LOG.info("[HOT-SWAP] Servidor accesible: " + status.version());
+
         } catch (IllegalStateException e) {
             candidate.close();
             throw e;
@@ -2343,6 +2454,7 @@ public class FaraCoreLlmDispatcher {
             }
 
             LOG.info("[HOT-SWAP] Prueba de fuego exitosa: modelo operativo");
+
         } catch (IllegalStateException e) {
             candidate.close();
             throw e;
@@ -2358,6 +2470,7 @@ public class FaraCoreLlmDispatcher {
             config.setProperty("rabbit.model.name", newModel);
             config.setProperty("rabbit.mode", "REMOTE");
             LOG.info("[HOT-SWAP] Configuración persistida");
+
         } catch (Exception e) {
             candidate.close();
             throw new IllegalStateException(
@@ -2524,6 +2637,7 @@ public class FaraCoreLlmDispatcher {
         this.expertClient = candidate;
 
         this.claudePreferred = false;
+        this.deepSeekPreferred = false;
 
         try {
             ConfigPriorityResolver resolverAgentic = new ConfigPriorityResolver();
@@ -2547,6 +2661,13 @@ public class FaraCoreLlmDispatcher {
             }
         }
 
+        try {
+            dev.fararoni.core.core.agents.ReactiveSwarmAgent.setCurrentModelId(newModel);
+            LOG.info("[TURTLE-SWAP] ReactiveSwarmAgent.currentModelId propagado a: " + newModel);
+        } catch (Throwable t) {
+            LOG.warning("[TURTLE-SWAP] No se pudo propagar a ReactiveSwarmAgent: " + t.getMessage());
+        }
+
         LOG.info("[TURTLE-SWAP] MISION CUMPLIDA. Turtle reconfigurado: " + newModel + " @ " + newUrl);
     }
 
@@ -2555,6 +2676,11 @@ public class FaraCoreLlmDispatcher {
 
         this.claudeClient = new AnthropicClient(apiKey, modelName);
         this.claudePreferred = true;
+
+        if (this.deepSeekPreferred) {
+            this.deepSeekPreferred = false;
+            LOG.info("[CLAUDE-SWAP] DeepSeek desactivado — Claude toma prioridad");
+        }
 
         try {
             SecureConfigService config = SecureConfigService.getInstance();
@@ -2607,6 +2733,70 @@ public class FaraCoreLlmDispatcher {
         return claudeClient != null ? claudeClient.getModelName() : "";
     }
 
+    public synchronized void activateDeepSeekAsTurtle(String apiKey, String modelName) {
+        LOG.info("[DEEPSEEK-SWAP] Activando DeepSeek como Turtle: " + modelName);
+
+        this.deepSeekClient = new DeepSeekClient(apiKey, modelName);
+        this.deepSeekPreferred = true;
+
+        if (this.claudePreferred) {
+            this.claudePreferred = false;
+            LOG.info("[DEEPSEEK-SWAP] Claude desactivado — DeepSeek toma prioridad");
+        }
+
+        try {
+            SecureConfigService config = SecureConfigService.getInstance();
+            config.setSecureProperty("deepseek.api.key", apiKey);
+            config.setProperty("deepseek.model", modelName);
+            config.setProperty("deepseek.mode", "ACTIVE");
+            config.setProperty("turtle.mode", "DEEPSEEK");
+            LOG.info("[DEEPSEEK-SWAP] Configuracion persistida");
+        } catch (Exception e) {
+            LOG.warning("[DEEPSEEK-SWAP] No se pudo persistir config: " + e.getMessage());
+        }
+
+        LOG.info("[DEEPSEEK-SWAP] DeepSeek activado como Turtle: " + modelName);
+    }
+
+    public synchronized void deactivateDeepSeekAsTurtle() {
+        LOG.info("[DEEPSEEK-SWAP] Desactivando DeepSeek como Turtle");
+        this.deepSeekPreferred = false;
+
+        try {
+            SecureConfigService config = SecureConfigService.getInstance();
+            config.setProperty("deepseek.mode", "INACTIVE");
+            config.setProperty("turtle.mode", "REMOTE");
+        } catch (Exception e) {
+            LOG.warning("[DEEPSEEK-SWAP] No se pudo persistir config: " + e.getMessage());
+        }
+    }
+
+    public String executeWithDeepSeek(String prompt) {
+        if (deepSeekClient == null) {
+            return executeExpertWithFallbackSilent(prompt);
+        }
+        try {
+            AgentResponse resp = deepSeekClient.generateWithTools("", prompt, List.of());
+            String text = resp.textContent();
+            if (text != null && !text.isBlank()) {
+                return text;
+            }
+            LOG.warning("[DEEPSEEK-CHAT] Respuesta vacia, fallback a Turtle Ollama");
+            return executeExpertWithFallbackSilent(prompt);
+        } catch (Exception e) {
+            LOG.warning("[DEEPSEEK-CHAT] Error: " + e.getMessage() + ", fallback a Turtle Ollama");
+            return executeExpertWithFallbackSilent(prompt);
+        }
+    }
+
+    public boolean isDeepSeekPreferred() { return deepSeekPreferred && deepSeekClient != null; }
+
+    public String getDeepSeekModelName() {
+        return deepSeekClient != null ? "deepseek-chat" : "";
+    }
+
+    public DeepSeekClient getDeepSeekClient() { return deepSeekClient; }
+
     public EnterpriseRouter getRouter() {
         return enterpriseRouter;
     }
@@ -2632,6 +2822,9 @@ public class FaraCoreLlmDispatcher {
     }
 
     public String getTurtleModelName() {
+        if (deepSeekPreferred && deepSeekClient != null) {
+            return "DeepSeek-V3.2";
+        }
         if (claudePreferred && claudeClient != null) {
             return claudeClient.getModelName();
         }
@@ -2687,6 +2880,10 @@ public class FaraCoreLlmDispatcher {
     }
 
     public dev.fararoni.core.core.clients.AgentClient resolveAgenticClient(RoutingPlan.TargetModel routedTarget) {
+        if (deepSeekClient != null && deepSeekPreferred) {
+            LOG.info("[AGENTIC-RESOLVE] DeepSeek API (preferred)");
+            return deepSeekClient;
+        }
         if (claudeClient != null && claudePreferred) {
             LOG.info("[AGENTIC-RESOLVE] Claude API (preferred)");
             return claudeClient;
@@ -2720,6 +2917,120 @@ public class FaraCoreLlmDispatcher {
             try { expertClient.close(); } catch (Exception e) {
                 LOG.warning("[DISPATCHER] Error al cerrar expertClient: " + e.getMessage());
             }
+        }
+    }
+
+    public String detectSwarmDelegation(String input) {
+        if (input == null || input.length() < 10) return null;
+        String lower = input.toLowerCase();
+
+        if (lower.contains("start_mission")) return null;
+
+        if (lower.matches(".*\\b(lee|leer|muestra|abre|edita esta l[ií]nea|" +
+                "muestrame el contenido)\\b.*")) {
+            return null;
+        }
+
+        if (lower.matches(".*(\\bbug\\b|\\berror\\b|\\bfallo\\b|crash|" +
+                "diagn[oó]stic|analiza el log|analiza el error|" +
+                "no funciona|no se crearon|no se pudo|por qu[eé] no|" +
+                "memory leak|race condition|deadlock|" +
+                "stack ?trace|excepci[oó]n).*")) {
+            return "forensic-analysis";
+        }
+
+        if (lower.matches(".*(optimiza el rendimiento|optimizar performance|" +
+                "profiling|thread safety|concurrencia.*problema|" +
+                "lento|latencia alta).*")) {
+            return "forensic-analysis";
+        }
+
+        if (lower.matches(".*(dise[nñ]a la arquitectura|dise[nñ]o arquitect[oó]nico|" +
+                "diagrama de componentes|blueprint del sistema|" +
+                "patr[oó]n hexagonal|arquitectura limpia|" +
+                "domain.driven design|\\bddd\\b|" +
+                "arquitectura de microservicios|arquitectura de eventos|" +
+                "ports? and adapters?).*")) {
+            return "defcon1-enterprise";
+        }
+
+        if (lower.matches(".*(servicio rest|api rest|api completa|\\bcrud\\b|" +
+                "microservicio|proyecto nuevo|aplicaci[oó]n completa|" +
+                "sistema completo|backend completo|m[oó]dulo nuevo).*")) {
+            return "code-general";
+        }
+
+        if (lower.matches(".*(spring security|implementa.*autenticaci[oó]n|" +
+                "agrega autenticaci[oó]n|\\bjwt\\b|\\boauth\\b|\\boauth2\\b|" +
+                "\\brbac\\b|\\bsso\\b|\\bsaml\\b|" +
+                "control de permisos|sistema de roles|" +
+                "cifrado.*datos|encriptaci[oó]n).*")) {
+            return "code-general";
+        }
+
+        if (lower.matches(".*(configur.*\\bjpa\\b|configur.*hibernate|" +
+                "agrega flyway|liquibase|" +
+                "schema sql.*completo|migraci[oó]n de (db|base de datos)|" +
+                "implementa.*repositorio|capa de persistencia).*")) {
+            return "code-general";
+        }
+
+        if (lower.matches(".*(migra de [a-z0-9]+ a [a-z0-9]+|" +
+                "migraci[oó]n de versi[oó]n|" +
+                "refactoriza el m[oó]dulo|refactoriza todo|" +
+                "actualiza spring boot|moderniza el c[oó]digo).*")) {
+            return "code-general";
+        }
+
+        if (lower.matches(".*(tests? de integraci[oó]n.*completo|implementa tdd|" +
+                "cobertura de tests|suite de tests|" +
+                "agrega tests al proyecto).*")) {
+            return "code-general";
+        }
+
+        if (lower.matches(".*(github actions|gitlab ci|configura dockerfile|" +
+                "kubernetes|configura pipeline|jenkinsfile|" +
+                "configura ci.cd).*")) {
+            return "code-general";
+        }
+
+        if (lower.matches(".*(integra con (stripe|paypal|aws|gcp|azure|" +
+                "sendgrid|twilio|firebase)|" +
+                "consume? una api .*externa|webhook de).*")) {
+            return "code-general";
+        }
+
+        return null;
+    }
+
+    public String invokeSwarmMissionDirectly(String userPrompt, String templateId) {
+        try {
+            if (toolExecutor == null) {
+                LOG.warning("[PRE-ROUTING] toolExecutor null, fallback a LLM normal");
+                return null;
+            }
+
+            var argsNode = JSON_MAPPER.createObjectNode();
+            argsNode.put("mission_goal", userPrompt);
+            argsNode.put("template_id", templateId);
+            argsNode.put("defcon_level",
+                "defcon1-enterprise".equals(templateId) ? 1 : 3);
+
+            String jsonArgs = JSON_MAPPER.writeValueAsString(argsNode);
+            LOG.info("[PRE-ROUTING] Invocando start_mission directamente: " + templateId
+                    + " | Goal: " + truncateForLog(userPrompt, 80));
+
+            var toolCall = new dev.fararoni.core.core.clients.AgentClient.ToolCall(
+                    "start_mission", jsonArgs);
+            var result = toolExecutor.executeTool(toolCall);
+            if (result != null && result.message() != null && !result.message().isBlank()) {
+                return result.message();
+            }
+            return "[OK] Misión '" + templateId + "' iniciada en segundo plano. "
+                 + "Los agentes están trabajando.";
+        } catch (Exception e) {
+            LOG.warning("[PRE-ROUTING] Error invocando swarm: " + e.getMessage());
+            return null;
         }
     }
 }

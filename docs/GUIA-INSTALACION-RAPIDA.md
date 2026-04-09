@@ -909,6 +909,20 @@ curl http://localhost:3000/health
 | macOS bloquea el instalador | Clic derecho > Abrir > Abrir |
 | QR de WhatsApp no aparece | Verificar permisos: `chmod +x ~/Fararoni/bin/sidecar-whatsapp` |
 | `command not found: fararoni` | Agregar PATH: `echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc` |
+| **(Solo macOS)** Sidecars bloqueados: *"can't be opened because it was not downloaded from the App Store"* | Ejecutar `xattr -cr` sobre la carpeta `bin/` donde se descargo el instalador (ver nota abajo) |
+
+> **Solo macOS — Desbloquear sidecars antes de instalar**
+>
+> macOS Gatekeeper bloquea los binarios descargados fuera del App Store.
+> Antes de ejecutar el instalador, abre una Terminal y ejecuta `xattr -cr` apuntando
+> a la carpeta `bin/` dentro de la descarga. Por ejemplo:
+>
+> ```bash
+> xattr -cr ~/Downloads/fararoni-v1.0-3.0/bin/
+> ```
+>
+> Ajusta la ruta segun donde hayas descargado el archivo.
+> Esto solo es necesario **una vez** y aplica exclusivamente a macOS.
 
 ---
 
