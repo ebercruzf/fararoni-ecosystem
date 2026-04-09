@@ -34,6 +34,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -222,7 +223,7 @@ public class NatsSovereignBus implements SovereignEventBus {
     }
 
     @Override
-    public <T> void subscribe(String topic, Class<T> payloadType, Consumer<SovereignEnvelope<T>> consumer) {
+    public <T> Flow.Subscription subscribe(String topic, Class<T> payloadType, Consumer<SovereignEnvelope<T>> consumer) {
         ensureInitialized();
 
         if (!running.get()) {
@@ -277,6 +278,35 @@ public class NatsSovereignBus implements SovereignEventBus {
         } else {
             subscribeWithCoreNats(topic, messageHandler);
         }
+
+        final String capturedTopic = topic;
+        return new Flow.Subscription() {
+            @Override
+            public void request(long n) {
+            }
+
+            @Override
+            public void cancel() {
+                try {
+                    var jsSub = jsSubscriptions.remove(capturedTopic);
+                    if (jsSub != null) {
+                        jsSub.unsubscribe();
+                        LOG.info("[NATS-JS] Unsubscribed from: {}", capturedTopic);
+                    }
+                    var dispatcher = dispatchers.remove(capturedTopic);
+                    if (dispatcher != null) {
+                        dispatcher.unsubscribe(capturedTopic);
+                        try {
+                            connection.closeDispatcher(dispatcher);
+                        } catch (Exception ignored) {
+                        }
+                        LOG.info("[NATS-CORE] Unsubscribed from: {}", capturedTopic);
+                    }
+                } catch (Exception e) {
+                    LOG.warn("[NATS-BUS] Error unsubscribing {}: {}", capturedTopic, e.getMessage());
+                }
+            }
+        };
     }
 
     /**
