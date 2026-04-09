@@ -8,6 +8,9 @@
 target/
 build/
 .gradle/
+
+# flatten-maven-plugin generated POM (regenerated on every mvn process-resources)
+**/.flattened-pom.xml
 *.class
 *.jar
 *.war
